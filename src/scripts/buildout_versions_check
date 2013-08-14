@@ -52,8 +52,7 @@ if __name__ == '__main__':
         default='versions.cfg')
     parser.add_option(
         '-v', action='count', dest='verbosity',
-        help='Increase verbosity (specify multiple times for more)',
-        default=1)
+        help='Increase verbosity (specify multiple times for more)')
     (options, args) = parser.parse_args()
 
     verbosity = options.verbosity
