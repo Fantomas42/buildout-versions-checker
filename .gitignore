@@ -1,0 +1,8 @@
+*~
+*.pyc
+.noseids
+bin/
+include/
+lib/
+dist/
+bvc.egg-info/
