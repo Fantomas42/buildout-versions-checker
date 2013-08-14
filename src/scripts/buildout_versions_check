@@ -1,8 +1,10 @@
 #!/usr/bin/python
 import futures
+
 import xmlrpclib
 from optparse import OptionParser
 from ConfigParser import RawConfigParser
+from distutils.version import LooseVersion
 
 
 class VersionsChecker(object):
@@ -21,7 +23,7 @@ class VersionsChecker(object):
         results = client.search({'name': package})
         for result in results:
             if result['name'].lower() == package:
-                if result['version'] > max_version:
+                if LooseVersion(result['version']) > LooseVersion(max_version):
                     max_version = result['version']
         return (package, max_version)
 
