@@ -2,7 +2,7 @@
 Buildout Versions Checker
 =========================
 
-Parse a `zc.buildout`_ versions file, and check if any updates are present.
+Parses a `zc.buildout`_ version file, and checks if any updates are available.
 
 If you use the practical convention to pin the versions of all the eggs
 used in your buildout into a file, you will find this package useful for
