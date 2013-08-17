@@ -39,9 +39,8 @@ class VersionsChecker(object):
     def start(self):
         results = []
         with futures.ThreadPoolExecutor(max_workers=10) as executor:
-            tasks = {
-                executor.submit(self.find_latest_version, *version):
-                version for version in self.versions}
+            tasks = [executor.submit(self.find_latest_version, *version)
+                     for version in self.versions]
             for task in futures.as_completed(tasks):
                 results.append(task.result())
         self.results = dict(results)
