@@ -18,9 +18,9 @@ Here an example of a version file: ::
   django				= 1.5
   django-tagging			= 0.3.1
 
-Now let's execute the ``buildout_versions_check`` script: ::
+Now let's execute the ``check-buildout-updates`` script: ::
 
-  $ ./buildout_versions_check -v -s versions.cfg
+  $ ./check-buildout-updates -v -s versions.cfg
   - 5 packages need to be checked for updates.
   - 4 updates founds.
   pillow                  = 2.1.0
