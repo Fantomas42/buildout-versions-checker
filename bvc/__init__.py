@@ -1,4 +1,4 @@
-#!/usr/bin/python
+"""Buildout version checker"""
 import futures
 
 import sys
@@ -45,7 +45,7 @@ class VersionsChecker(object):
         self.updates = updates
 
 
-if __name__ == '__main__':
+def cmdline():
     parser = OptionParser(usage='usage: %prog [options]')
     parser.add_option(
         '-s', '--source', dest='source', type='string',
@@ -73,3 +73,7 @@ if __name__ == '__main__':
         print('%s= %s' % (package.ljust(24), version))
 
     sys.exit(0)
+
+
+if __name__ == '__main__':
+    cmdline()
