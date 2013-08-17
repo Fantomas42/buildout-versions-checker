@@ -2,11 +2,14 @@
 import futures
 
 import sys
+import logging
 import xmlrpclib
 from optparse import OptionParser
 from ConfigParser import NoSectionError
 from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
+
+logger = logging.getLogger(__name__)
 
 
 class VersionsChecker(object):
@@ -16,6 +19,8 @@ class VersionsChecker(object):
         config = RawConfigParser()
         config.read(self.source)
         self.versions = config.items('versions')
+        logger.info('- %d packages need to be checked for updates.' %
+                      len(self.versions))
 
     def find_latest_version(self, package, current_version):
         package = package.lower()
@@ -42,6 +47,7 @@ class VersionsChecker(object):
             if self.results[package] > current_version:
                 updates.append((package, self.results[package]))
         self.updates = updates
+        logger.info('- %d updates founds.' % len(updates))
 
 
 def cmdline():
@@ -56,18 +62,19 @@ def cmdline():
     (options, args) = parser.parse_args()
 
     verbosity = options.verbosity
+    if verbosity:
+        console = logging.StreamHandler(sys.stdout)
+        logger.addHandler(console)
+        logger.setLevel(verbosity >= 2 and
+                        logging.DEBUG or logging.INFO)
+
     try:
         versions_checker = VersionsChecker(options.source)
     except NoSectionError:
         sys.exit('Versions are not found in %s.' % options.source)
 
-    if verbosity:
-        print('- %d packages need to be checked for updates.' %
-              len(versions_checker.versions))
-
     versions_checker.start()
-    if verbosity:
-        print('- %d updates founds.' % len(versions_checker.updates))
+
     for package, version in versions_checker.updates:
         print('%s= %s' % (package.ljust(24), version))
 
