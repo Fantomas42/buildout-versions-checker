@@ -4,21 +4,21 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
+import bvc
+
 setup(
     name='bvc',
-    version=0.1,
+    version=bvc.__version__,
     zip_safe=False,
-
-    scripts=['./src/scripts/buildout_versions_check'],
 
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
 
-    author='Fantomas42',
-    author_email='fantomas42@gmail.com',
-    url='https://github.com/Fantomas42/bvc',
+    author=bvc.__author__,
+    author_email=bvc.__email__,
+    url=bvc.__url__,
 
-    license='GPL',
+    license=bvc.__license__,
     platforms='any',
     description='Check updates from a Buildout version file',
     long_description=open(os.path.join('README.rst')).read(),
@@ -28,4 +28,6 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules'],
     install_requires=['futures>=2.1.4'],
+    entry_points={
+        'console_scripts': 'check-buildout-updates=bvc:cmdline'},
 )

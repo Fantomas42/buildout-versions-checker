@@ -8,6 +8,14 @@ from ConfigParser import NoSectionError
 from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
 
+__version__ = '0.1.1'
+__license__ = 'BSD License'
+
+__author__ = 'Fantomas42'
+__email__ = 'fantomas42@gmail.com'
+
+__url__ = 'https://github.com/Fantomas42/bvc'
+
 
 class VersionsChecker(object):
 
