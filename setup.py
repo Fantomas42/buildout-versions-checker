@@ -4,21 +4,28 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-import bvc
+__version__ = '0.1.1'
+__license__ = 'BSD License'
+
+__author__ = 'Fantomas42'
+__email__ = 'fantomas42@gmail.com'
+
+__url__ = 'https://github.com/Fantomas42/bvc'
+
 
 setup(
     name='bvc',
-    version=bvc.__version__,
+    version=__version__,
     zip_safe=False,
 
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
 
-    author=bvc.__author__,
-    author_email=bvc.__email__,
-    url=bvc.__url__,
+    author=__author__,
+    author_email=__email__,
+    url=__url__,
 
-    license=bvc.__license__,
+    license=__license__,
     platforms='any',
     description='Check updates from a Buildout version file',
     long_description=open(os.path.join('README.rst')).read(),
