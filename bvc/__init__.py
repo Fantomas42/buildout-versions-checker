@@ -23,6 +23,7 @@ class VersionsChecker(object):
                       len(self.versions))
 
     def find_latest_version(self, package, current_version):
+        logger.debug('> Fetching latest datas for %s...' % package)
         package = package.lower()
         max_version = current_version
         client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
@@ -31,6 +32,7 @@ class VersionsChecker(object):
             if result['name'].lower() == package:
                 if LooseVersion(result['version']) > LooseVersion(max_version):
                     max_version = result['version']
+        logger.debug('>> Last version of %s is %s' % (package, max_version))
         return (package, max_version)
 
     def start(self):
