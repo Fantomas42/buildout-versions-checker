@@ -5,6 +5,7 @@ import sys
 import logging
 import xmlrpclib
 from optparse import OptionParser
+from collections import OrderedDict
 from ConfigParser import NoSectionError
 from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
@@ -13,51 +14,83 @@ logger = logging.getLogger(__name__)
 
 
 class VersionsChecker(object):
+    max_worker = 10
+    service_url = 'http://pypi.python.org/pypi'
 
-    def __init__(self, source):
+    def __init__(self, source, threaded=True):
         self.source = source
-        config = RawConfigParser()
-        config.read(self.source)
-        self.versions = config.items('versions')
-        logger.info('- %d packages need to be checked for updates.' %
-                      len(self.versions))
+        self.threaded = threaded
+        self.versions = OrderedDict(
+            self.parse_versions(self.source))
+        self.last_versions = OrderedDict(
+            self.fetch_last_versions(self.versions.keys(),
+                                     self.threaded))
+        self.updates = OrderedDict(self.find_updates(
+            self.versions, self.last_versions))
 
-    def find_latest_version(self, package, current_version):
-        logger.debug('> Fetching latest datas for %s...' % package)
-        package = package.lower()
-        max_version = current_version
-        client = xmlrpclib.ServerProxy('http://pypi.python.org/pypi')
+    def parse_versions(self, source):
+        config = RawConfigParser()
+        config.read(source)
+        try:
+            versions = config.items('versions')
+        except NoSectionError:
+            raise Exception('Versions are not found in %s' % source)
+        logger.info('- %d packages need to be checked for updates.' %
+                    len(versions))
+        return versions
+
+    def fetch_last_versions(self, packages, threaded):
+        versions = []
+        if threaded:
+            with futures.ThreadPoolExecutor(
+                    max_workers=self.max_worker) as executor:
+                tasks = [executor.submit(self.fetch_last_version, package)
+                         for package in packages]
+                for task in futures.as_completed(tasks):
+                    versions.append(task.result())
+        else:
+            for package in packages:
+                versions.append(self.fetch_last_version(package))
+
+        return versions
+
+    def fetch_last_version(self, package):
+        package_key = package.lower()
+        max_version = '0.0'
+        logger.info('> Fetching latest datas for %s...' % package)
+        client = xmlrpclib.ServerProxy(self.service_url)
         results = client.search({'name': package})
         for result in results:
-            if result['name'].lower() == package:
+            if result['name'].lower() == package_key:
                 if LooseVersion(result['version']) > LooseVersion(max_version):
                     max_version = result['version']
-        logger.debug('>> Last version of %s is %s' % (package, max_version))
+        logger.debug('-> Last version of %s is %s.' % (package, max_version))
         return (package, max_version)
 
-    def start(self):
-        results = []
-        with futures.ThreadPoolExecutor(max_workers=10) as executor:
-            tasks = [executor.submit(self.find_latest_version, *version)
-                     for version in self.versions]
-            for task in futures.as_completed(tasks):
-                results.append(task.result())
-        self.results = dict(results)
-
+    def find_updates(self, versions, last_versions):
         updates = []
-        for package, current_version in self.versions:
-            if self.results[package] > current_version:
-                updates.append((package, self.results[package]))
-        self.updates = updates
-        logger.info('- %d updates founds.' % len(updates))
+        for package, current_version in self.versions.items():
+            last_version = last_versions[package]
+            if last_version != current_version:
+                logger.debug(
+                    '=> %s current version (%s) and last '
+                    'version (%s) are different.' %
+                    (package, current_version, last_version))
+                updates.append((package, last_version))
+        logger.info('- %d package updates found.' % len(updates))
+        return updates
 
 
 def cmdline():
     parser = OptionParser(usage='usage: %prog [options]')
     parser.add_option(
         '-s', '--source', dest='source', type='string',
-        help='The versions file used by Buildout',
+        help='The file where versions are pinned',
         default='versions.cfg')
+    parser.add_option(
+        '--no-threads', action='store_false', dest='threaded',
+        help='Do not checks versions in parallel',
+        default=True)
     parser.add_option(
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
@@ -71,13 +104,11 @@ def cmdline():
                         logging.DEBUG or logging.INFO)
 
     try:
-        versions_checker = VersionsChecker(options.source)
-    except NoSectionError:
-        sys.exit('Versions are not found in %s.' % options.source)
+        checker = VersionsChecker(options.source, options.threaded)
+    except NoSectionError as e:
+        sys.exit(e.message)
 
-    versions_checker.start()
-
-    for package, version in versions_checker.updates:
+    for package, version in checker.updates.items():
         print('%s= %s' % (package.ljust(24), version))
 
     sys.exit(0)
