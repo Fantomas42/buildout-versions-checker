@@ -13,6 +13,10 @@ from distutils.version import LooseVersion
 logger = logging.getLogger(__name__)
 
 
+class VersionsConfigParser(RawConfigParser):
+    optionxform = str
+
+
 class VersionsChecker(object):
     max_worker = 10
     service_url = 'http://pypi.python.org/pypi'
@@ -29,8 +33,7 @@ class VersionsChecker(object):
             self.versions, self.last_versions))
 
     def parse_versions(self, source):
-        config = RawConfigParser()
-        config.optionxform = str
+        config = VersionsConfigParser()
         config.read(source)
         try:
             versions = config.items('versions')
@@ -89,6 +92,10 @@ def cmdline():
         help='The file where versions are pinned',
         default='versions.cfg')
     parser.add_option(
+        '-w', '--write', action='store_true', dest='write',
+        help='Write the updates in the source file',
+        default=False)
+    parser.add_option(
         '--no-threads', action='store_false', dest='threaded',
         help='Do not checks versions in parallel',
         default=True)
@@ -104,13 +111,23 @@ def cmdline():
         logger.setLevel(verbosity >= 2 and
                         logging.DEBUG or logging.INFO)
 
+    source = options.source
     try:
-        checker = VersionsChecker(options.source, options.threaded)
+        checker = VersionsChecker(source, options.threaded)
     except NoSectionError as e:
         sys.exit(e.message)
 
-    for package, version in checker.updates.items():
-        print('%s= %s' % (package.ljust(24), version))
+    if options.write and checker.updates:
+        config = VersionsConfigParser()
+        config.read(source)
+        for package, version in checker.updates.items():
+            config.set('versions', package, version)
+        with open(source, 'wb') as fd:
+            config.write(fd)
+        logger.info('- %s updated.' % source)
+    else:
+        for package, version in checker.updates.items():
+            print('%s= %s' % (package.ljust(24), version))
 
     sys.exit(0)
 
