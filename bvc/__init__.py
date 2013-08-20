@@ -30,6 +30,7 @@ class VersionsChecker(object):
 
     def parse_versions(self, source):
         config = RawConfigParser()
+        config.optionxform = str
         config.read(source)
         try:
             versions = config.items('versions')
