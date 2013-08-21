@@ -21,24 +21,30 @@ class VersionsChecker(object):
     max_worker = 10
     service_url = 'http://pypi.python.org/pypi'
 
-    def __init__(self, source, threaded=True):
+    def __init__(self, source, exclude=[], threaded=True):
         self.source = source
         self.threaded = threaded
+        self.exclude = map(lambda x: x.lower(), exclude)
         self.versions = OrderedDict(
-            self.parse_versions(self.source))
+            self.parse_versions(self.source, self.exclude))
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
                                      self.threaded))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
-    def parse_versions(self, source):
+    def parse_versions(self, source, exclude):
         config = VersionsConfigParser()
         config.read(source)
         try:
             versions = config.items('versions')
         except NoSectionError:
             raise Exception('Versions are not found in %s' % source)
+
+        for index, version in enumerate(versions):
+            if version[0].lower() in exclude:
+                versions.pop(index)
+
         logger.info('- %d packages need to be checked for updates.' %
                     len(versions))
         return versions
@@ -92,6 +98,10 @@ def cmdline():
         help='The file where versions are pinned',
         default='versions.cfg')
     parser.add_option(
+        '-e', '--exclude', action='append', dest='exclude',
+        help='Exclude package when checking updates',
+        default=[]),
+    parser.add_option(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
         default=False)
@@ -112,8 +122,9 @@ def cmdline():
                         logging.DEBUG or logging.INFO)
 
     source = options.source
+
     try:
-        checker = VersionsChecker(source, options.threaded)
+        checker = VersionsChecker(source, options.exclude, options.threaded)
     except NoSectionError as e:
         sys.exit(e.message)
 
