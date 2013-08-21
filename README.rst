@@ -24,15 +24,28 @@ Here an example of a version file: ::
 
 Now let's execute the ``check-buildout-updates`` script: ::
 
-  $ ./check-buildout-updates -v -s versions.cfg
-  - 5 packages need to be checked for updates.
-  - 4 updates founds.
+  $ ./check-buildout-updates
   Pillow                  = 2.1.0
   pytz                    = 2013b
   South                   = 0.8.2
   django                  = 1.5.2
 
 You can now update the ``versions.cfg`` file accordingly to your needs.
+
+::
+
+  $ ./check-buildout-updates -h
+  Usage: check-buildout-updates [options]
+
+  Options:
+    -h, --help            show this help message and exit
+    -s SOURCE, --source=SOURCE
+                          The file where versions are pinned
+    -e EXCLUDE, --exclude=EXCLUDE
+                          Exclude package when checking updates
+    -w, --write           Write the updates in the source file
+    --no-threads          Do not checks versions in parallel
+    -v                    Increase verbosity (specify multiple times for more)
 
 Requirements
 ------------
