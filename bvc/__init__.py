@@ -97,12 +97,12 @@ def cmdline():
         'version section of a buildout script')
     parser.add_argument(
         '-s', '--source', dest='source',
-        help='The file where versions are pinned',
-        default='versions.cfg')
+        help='The file where versions are pinned '
+        '(default: versions.cfg)', default='versions.cfg')
     parser.add_argument(
         '-e', '--exclude', action='append', dest='exclude',
-        help='Exclude package when checking updates',
-        default=[]),
+        help='Exclude package when checking updates'
+        ' (can be used multiple times)', default=[]),
     parser.add_argument(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
