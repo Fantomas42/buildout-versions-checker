@@ -16,6 +16,24 @@ logger = logging.getLogger(__name__)
 class VersionsConfigParser(RawConfigParser):
     optionxform = str
 
+    def write(self, fp):
+        """Write an .ini-format representation of the configuration state."""
+        if self._defaults:
+            fp.write("[%s]\n" % DEFAULTSECT)
+            for (key, value) in self._defaults.items():
+                fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
+            fp.write("\n")
+        for section in self._sections:
+            fp.write("[%s]\n" % section)
+            for (key, value) in self._sections[section].items():
+                if key != "__name__":
+                    if value is None:
+                        fp.write("%s\n" % (key))
+                    else:
+                        fp.write("%s = %s\n" %
+                                 (key, str(value).replace('\n', '\n\t')))
+            fp.write("\n")
+
 
 class VersionsChecker(object):
     max_worker = 10
