@@ -19,6 +19,7 @@ class VersionsConfigParser(RawConfigParser):
     beautiful buildout files.
     """
     optionxform = str
+    indentation = 24
 
     def write_section(self, fd, section):
         """
@@ -30,8 +31,10 @@ class VersionsConfigParser(RawConfigParser):
             if key != '__name__':
                 if value is None:
                     value = ''
-                fd.write('%s = %s\n' %
-                         (key, str(value).replace('\n', '\n\t')))
+                fd.write('%s= %s\n' % (
+                    key.ljust(self.indentation),
+                    str(value).replace(
+                        '\n', '\n'.ljust(self.indentation + 3))))
 
     def write(self, source):
         """
