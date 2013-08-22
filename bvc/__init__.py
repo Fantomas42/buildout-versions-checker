@@ -16,22 +16,27 @@ logger = logging.getLogger(__name__)
 class VersionsConfigParser(RawConfigParser):
     optionxform = str
 
+    def write_section(self, fd, section):
+        fd.write('[%s]\n' % section)
+        for key, value in self._sections[section].items():
+            if key != '__name__':
+                if value is None:
+                    fd.write('%s\n' % (key))
+                else:
+                    fd.write('%s = %s\n' %
+                             (key, str(value).replace('\n', '\n\t')))
+
     def write(self, source):
         """
         Write an .ini-format representation of the
         configuration state with readable indentation.
         """
         with open(source, 'wb') as fd:
-            for section in self._sections:
-                fd.write('[%s]\n' % section)
-                for (key, value) in self._sections[section].items():
-                    if key != '__name__':
-                        if value is None:
-                            fd.write('%s\n' % (key))
-                        else:
-                            fd.write('%s = %s\n' %
-                                     (key, str(value).replace('\n', '\n\t')))
+            sections = self._sections.keys()
+            for section in sections[:-1]:
+                self.write_section(fd, section)
                 fd.write('\n')
+            self.write_section(fd, sections[-1])
 
 
 class VersionsChecker(object):
