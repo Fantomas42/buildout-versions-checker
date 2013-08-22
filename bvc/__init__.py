@@ -148,7 +148,7 @@ def cmdline(argv=None):
     source = options.source
     try:
         checker = VersionsChecker(source, options.exclude, options.threaded)
-    except NoSectionError as e:
+    except Exception as e:
         sys.exit(e.message)
 
     if options.write and checker.updates:
