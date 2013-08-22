@@ -14,9 +14,17 @@ logger = logging.getLogger(__name__)
 
 
 class VersionsConfigParser(RawConfigParser):
+    """
+    ConfigParser customized to read and write
+    beautiful buildout files.
+    """
     optionxform = str
 
     def write_section(self, fd, section):
+        """
+        Write a section of an .ini-format
+        and all the keys within.
+        """
         fd.write('[%s]\n' % section)
         for key, value in self._sections[section].items():
             if key != '__name__':
@@ -28,7 +36,7 @@ class VersionsConfigParser(RawConfigParser):
     def write(self, source):
         """
         Write an .ini-format representation of the
-        configuration state with readable indentation.
+        configuration state with a readable indentation.
         """
         with open(source, 'wb') as fd:
             sections = self._sections.keys()
