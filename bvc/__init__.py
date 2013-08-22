@@ -21,10 +21,9 @@ class VersionsConfigParser(RawConfigParser):
         for key, value in self._sections[section].items():
             if key != '__name__':
                 if value is None:
-                    fd.write('%s\n' % (key))
-                else:
-                    fd.write('%s = %s\n' %
-                             (key, str(value).replace('\n', '\n\t')))
+                    value = ''
+                fd.write('%s = %s\n' %
+                         (key, str(value).replace('\n', '\n\t')))
 
     def write(self, source):
         """
