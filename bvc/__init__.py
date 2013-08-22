@@ -4,7 +4,7 @@ import futures
 import sys
 import logging
 import xmlrpclib
-from optparse import OptionParser
+from argparse import ArgumentParser
 from collections import OrderedDict
 from ConfigParser import NoSectionError
 from ConfigParser import RawConfigParser
@@ -91,28 +91,35 @@ class VersionsChecker(object):
         return updates
 
 
-def cmdline():
-    parser = OptionParser(usage='usage: %prog [options]')
-    parser.add_option(
-        '-s', '--source', dest='source', type='string',
-        help='The file where versions are pinned',
-        default='versions.cfg')
-    parser.add_option(
+def cmdline(argv=None):
+    parser = ArgumentParser(
+        description='Check availables updates from a '
+        'version section of a buildout script')
+    parser.add_argument(
+        '-s', '--source', dest='source',
+        help='The file where versions are pinned '
+        '(default: versions.cfg)', default='versions.cfg')
+    parser.add_argument(
         '-e', '--exclude', action='append', dest='exclude',
-        help='Exclude package when checking updates',
-        default=[]),
-    parser.add_option(
+        help='Exclude package when checking updates'
+        ' (can be used multiple times)', default=[]),
+    parser.add_argument(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
         default=False)
-    parser.add_option(
+    parser.add_argument(
         '--no-threads', action='store_false', dest='threaded',
         help='Do not checks versions in parallel',
         default=True)
-    parser.add_option(
+    parser.add_argument(
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
-    (options, args) = parser.parse_args()
+
+    if argv is None:
+        argv = sys.argv[1:]
+    else:
+        argv = argv.split()
+    options = parser.parse_args(argv)
 
     verbosity = options.verbosity
     if verbosity:
@@ -122,7 +129,6 @@ def cmdline():
                         logging.DEBUG or logging.INFO)
 
     source = options.source
-
     try:
         checker = VersionsChecker(source, options.exclude, options.threaded)
     except NoSectionError as e:
