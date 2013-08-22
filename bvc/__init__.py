@@ -16,21 +16,22 @@ logger = logging.getLogger(__name__)
 class VersionsConfigParser(RawConfigParser):
     optionxform = str
 
-    def write(self, fp):
+    def write(self, source):
         """
         Write an .ini-format representation of the
         configuration state with readable indentation.
         """
-        for section in self._sections:
-            fp.write('[%s]\n' % section)
-            for (key, value) in self._sections[section].items():
-                if key != '__name__':
-                    if value is None:
-                        fp.write('%s\n' % (key))
-                    else:
-                        fp.write('%s = %s\n' %
-                                 (key, str(value).replace('\n', '\n\t')))
-            fp.write('\n')
+        with open(source, 'wb') as fd:
+            for section in self._sections:
+                fd.write('[%s]\n' % section)
+                for (key, value) in self._sections[section].items():
+                    if key != '__name__':
+                        if value is None:
+                            fd.write('%s\n' % (key))
+                        else:
+                            fd.write('%s = %s\n' %
+                                     (key, str(value).replace('\n', '\n\t')))
+                fd.write('\n')
 
 
 class VersionsChecker(object):
@@ -155,8 +156,7 @@ def cmdline(argv=None):
         config.read(source)
         for package, version in checker.updates.items():
             config.set('versions', package, version)
-        with open(source, 'wb') as fd:
-            config.write(fd)
+        config.write(source)
         logger.info('- %s updated.' % source)
     else:
         for package, version in checker.updates.items():
