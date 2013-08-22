@@ -14,7 +14,39 @@ logger = logging.getLogger(__name__)
 
 
 class VersionsConfigParser(RawConfigParser):
+    """
+    ConfigParser customized to read and write
+    beautiful buildout files.
+    """
     optionxform = str
+    indentation = 24
+
+    def write_section(self, fd, section):
+        """
+        Write a section of an .ini-format
+        and all the keys within.
+        """
+        fd.write('[%s]\n' % section)
+        for key, value in self._sections[section].items():
+            if key != '__name__':
+                if value is None:
+                    value = ''
+                fd.write('%s= %s\n' % (
+                    key.ljust(self.indentation),
+                    str(value).replace(
+                        '\n', '\n'.ljust(self.indentation + 3))))
+
+    def write(self, source):
+        """
+        Write an .ini-format representation of the
+        configuration state with a readable indentation.
+        """
+        with open(source, 'wb') as fd:
+            sections = self._sections.keys()
+            for section in sections[:-1]:
+                self.write_section(fd, section)
+                fd.write('\n')
+            self.write_section(fd, sections[-1])
 
 
 class VersionsChecker(object):
@@ -131,7 +163,7 @@ def cmdline(argv=None):
     source = options.source
     try:
         checker = VersionsChecker(source, options.exclude, options.threaded)
-    except NoSectionError as e:
+    except Exception as e:
         sys.exit(e.message)
 
     if options.write and checker.updates:
@@ -139,8 +171,7 @@ def cmdline(argv=None):
         config.read(source)
         for package, version in checker.updates.items():
             config.set('versions', package, version)
-        with open(source, 'wb') as fd:
-            config.write(fd)
+        config.write(source)
         logger.info('- %s updated.' % source)
     else:
         for package, version in checker.updates.items():
