@@ -4,7 +4,7 @@ import futures
 import sys
 import logging
 import xmlrpclib
-from optparse import OptionParser
+from argparse import ArgumentParser
 from collections import OrderedDict
 from ConfigParser import NoSectionError
 from ConfigParser import RawConfigParser
@@ -14,7 +14,39 @@ logger = logging.getLogger(__name__)
 
 
 class VersionsConfigParser(RawConfigParser):
+    """
+    ConfigParser customized to read and write
+    beautiful buildout files.
+    """
     optionxform = str
+    indentation = 24
+
+    def write_section(self, fd, section):
+        """
+        Write a section of an .ini-format
+        and all the keys within.
+        """
+        fd.write('[%s]\n' % section)
+        for key, value in self._sections[section].items():
+            if key != '__name__':
+                if value is None:
+                    value = ''
+                fd.write('%s= %s\n' % (
+                    key.ljust(self.indentation),
+                    str(value).replace(
+                        '\n', '\n'.ljust(self.indentation + 3))))
+
+    def write(self, source):
+        """
+        Write an .ini-format representation of the
+        configuration state with a readable indentation.
+        """
+        with open(source, 'wb') as fd:
+            sections = self._sections.keys()
+            for section in sections[:-1]:
+                self.write_section(fd, section)
+                fd.write('\n')
+            self.write_section(fd, sections[-1])
 
 
 class VersionsChecker(object):
@@ -91,28 +123,39 @@ class VersionsChecker(object):
         return updates
 
 
-def cmdline():
-    parser = OptionParser(usage='usage: %prog [options]')
-    parser.add_option(
-        '-s', '--source', dest='source', type='string',
-        help='The file where versions are pinned',
-        default='versions.cfg')
-    parser.add_option(
+def cmdline(argv=None):
+    parser = ArgumentParser(
+        description='Check availables updates from a '
+        'version section of a buildout script')
+    parser.add_argument(
+        '-s', '--source', dest='source',
+        help='The file where versions are pinned '
+        '(default: versions.cfg)', default='versions.cfg')
+    parser.add_argument(
         '-e', '--exclude', action='append', dest='exclude',
-        help='Exclude package when checking updates',
-        default=[]),
-    parser.add_option(
+        help='Exclude package when checking updates'
+        ' (can be used multiple times)', default=[]),
+    parser.add_argument(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
         default=False)
-    parser.add_option(
+    parser.add_argument(
+        '--indent', dest='indentation', type=int,
+        help='Spaces used when indenting "key = value" (default: 24)',
+        default=24)
+    parser.add_argument(
         '--no-threads', action='store_false', dest='threaded',
         help='Do not checks versions in parallel',
         default=True)
-    parser.add_option(
+    parser.add_argument(
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
-    (options, args) = parser.parse_args()
+
+    if argv is None:
+        argv = sys.argv[1:]
+    else:
+        argv = argv.split()
+    options = parser.parse_args(argv)
 
     verbosity = options.verbosity
     if verbosity:
@@ -122,23 +165,26 @@ def cmdline():
                         logging.DEBUG or logging.INFO)
 
     source = options.source
-
     try:
         checker = VersionsChecker(source, options.exclude, options.threaded)
-    except NoSectionError as e:
+    except Exception as e:
         sys.exit(e.message)
 
-    if options.write and checker.updates:
+    if not checker.updates:
+        sys.exit(0)
+
+    if options.write:
         config = VersionsConfigParser()
+        config.indentation = options.indentation
         config.read(source)
         for package, version in checker.updates.items():
             config.set('versions', package, version)
-        with open(source, 'wb') as fd:
-            config.write(fd)
+        config.write(source)
         logger.info('- %s updated.' % source)
     else:
+        print('[versions]')
         for package, version in checker.updates.items():
-            print('%s= %s' % (package.ljust(24), version))
+            print('%s= %s' % (package.ljust(options.indentation), version))
 
     sys.exit(0)
 
