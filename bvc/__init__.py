@@ -140,6 +140,10 @@ def cmdline(argv=None):
         help='Write the updates in the source file',
         default=False)
     parser.add_argument(
+        '--indent', dest='indentation', type=int,
+        help='Spaces used when indenting "key = value" (default: 24)',
+        default=24)
+    parser.add_argument(
         '--no-threads', action='store_false', dest='threaded',
         help='Do not checks versions in parallel',
         default=True)
@@ -166,16 +170,21 @@ def cmdline(argv=None):
     except Exception as e:
         sys.exit(e.message)
 
-    if options.write and checker.updates:
+    if not checker.updates:
+        sys.exit(0)
+
+    if options.write:
         config = VersionsConfigParser()
+        config.indentation = options.indentation
         config.read(source)
         for package, version in checker.updates.items():
             config.set('versions', package, version)
         config.write(source)
         logger.info('- %s updated.' % source)
     else:
+        print('[versions]')
         for package, version in checker.updates.items():
-            print('%s= %s' % (package.ljust(24), version))
+            print('%s= %s' % (package.ljust(options.indentation), version))
 
     sys.exit(0)
 
