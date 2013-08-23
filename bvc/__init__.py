@@ -166,7 +166,10 @@ def cmdline(argv=None):
     except Exception as e:
         sys.exit(e.message)
 
-    if options.write and checker.updates:
+    if not checker.updates:
+        sys.exit(0)
+
+    if options.write:
         config = VersionsConfigParser()
         config.read(source)
         for package, version in checker.updates.items():
