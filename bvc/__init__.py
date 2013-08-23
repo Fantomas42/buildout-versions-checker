@@ -174,6 +174,7 @@ def cmdline(argv=None):
         config.write(source)
         logger.info('- %s updated.' % source)
     else:
+        print('[versions]')
         for package, version in checker.updates.items():
             print('%s= %s' % (package.ljust(24), version))
 
