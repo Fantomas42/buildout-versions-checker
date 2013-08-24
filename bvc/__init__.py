@@ -174,11 +174,7 @@ def cmdline(argv=None):
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
 
-    if argv is None:
-        argv = sys.argv[1:]
-    else:
-        argv = argv.split()
-    options = parser.parse_args(argv)
+    options = parser.parse_args(argv and argv.split() or sys.argv[1:])
 
     verbosity = options.verbosity
     if verbosity:
