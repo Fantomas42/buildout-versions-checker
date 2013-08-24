@@ -50,10 +50,17 @@ class VersionsConfigParser(RawConfigParser):
 
 
 class VersionsChecker(object):
+    """
+    Checks updates of packages from a config file on Pypi.
+    """
     max_worker = 10
     service_url = 'http://pypi.python.org/pypi'
 
     def __init__(self, source, exclude=[], threaded=True):
+        """
+        Parses a config file containing pinned versions
+        of eggs and check available updates.
+        """
         self.source = source
         self.threaded = threaded
         self.exclude = map(lambda x: x.lower(), exclude)
@@ -66,6 +73,11 @@ class VersionsChecker(object):
             self.versions, self.last_versions))
 
     def parse_versions(self, source, exclude):
+        """
+        Parses the source file to return the packages
+        with their current versions less the packages
+        passed in the exclude list.
+        """
         config = VersionsConfigParser()
         config.read(source)
         try:
@@ -82,6 +94,10 @@ class VersionsChecker(object):
         return versions
 
     def fetch_last_versions(self, packages, threaded):
+        """
+        Fetch the latest versions of a list of packages,
+        in a threaded manner or not.
+        """
         versions = []
         if threaded:
             with futures.ThreadPoolExecutor(
@@ -97,6 +113,9 @@ class VersionsChecker(object):
         return versions
 
     def fetch_last_version(self, package):
+        """
+        Fetch the last version of a package on Pypi.
+        """
         package_key = package.lower()
         max_version = '0.0'
         logger.info('> Fetching latest datas for %s...' % package)
@@ -110,6 +129,10 @@ class VersionsChecker(object):
         return (package, max_version)
 
     def find_updates(self, versions, last_versions):
+        """
+        Compare the current versions of the packages
+        with the last versions to find updates.
+        """
         updates = []
         for package, current_version in self.versions.items():
             last_version = last_versions[package]
