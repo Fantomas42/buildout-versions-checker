@@ -54,6 +54,7 @@ class VersionsChecker(object):
     Checks updates of packages from a config file on Pypi.
     """
     max_worker = 10
+    default_version = '0.0.0'
     service_url = 'http://pypi.python.org/pypi'
 
     def __init__(self, source, includes=[], excludes=[], threaded=True):
@@ -100,7 +101,7 @@ class VersionsChecker(object):
         packages_lower = map(lambda x: x.lower(), versions.keys())
         for include in includes:
             if include.lower() not in packages_lower:
-                versions[include] = '0.0.0'
+                versions[include] = self.default_version
         excludes_lower = map(lambda x: x.lower(), excludes)
         for package in versions.keys():
             if package.lower() in excludes_lower:
@@ -132,7 +133,7 @@ class VersionsChecker(object):
         Fetch the last version of a package on Pypi.
         """
         package_key = package.lower()
-        max_version = '0.0'
+        max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
         client = xmlrpclib.ServerProxy(self.service_url)
         results = client.search({'name': package})
