@@ -54,41 +54,58 @@ class VersionsChecker(object):
     Checks updates of packages from a config file on Pypi.
     """
     max_worker = 10
+    default_version = '0.0.0'
     service_url = 'http://pypi.python.org/pypi'
 
-    def __init__(self, source, exclude=[], threaded=True):
+    def __init__(self, source, includes=[], excludes=[], threaded=True):
         """
         Parses a config file containing pinned versions
         of eggs and check available updates.
         """
         self.source = source
+        self.includes = includes
+        self.excludes = excludes
         self.threaded = threaded
-        self.exclude = map(lambda x: x.lower(), exclude)
-        self.versions = OrderedDict(
-            self.parse_versions(self.source, self.exclude))
+        self.source_versions = OrderedDict(
+            self.parse_versions(self.source))
+        self.versions = self.include_exclude_versions(
+            self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
                                      self.threaded))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
-    def parse_versions(self, source, exclude):
+    def parse_versions(self, source):
         """
         Parses the source file to return the packages
-        with their current versions less the packages
-        passed in the exclude list.
+        with their current versions.
         """
         config = VersionsConfigParser()
         config.read(source)
         try:
             versions = config.items('versions')
         except NoSectionError:
-            raise Exception('Versions are not found in %s' % source)
+            logger.debug("'versions' section not found in %s." % source)
+            return {}
+        logger.info('- %d versions found in %s.' % (len(versions), source))
+        return versions
 
-        for index, version in enumerate(versions):
-            if version[0].lower() in exclude:
-                versions.pop(index)
-
+    def include_exclude_versions(self, source_versions,
+                                 includes=[], excludes=[]):
+        """
+        Includes and excludes packages to be checked in
+        the default dict of packages with versions.
+        """
+        versions = source_versions.copy()
+        packages_lower = map(lambda x: x.lower(), versions.keys())
+        for include in includes:
+            if include.lower() not in packages_lower:
+                versions[include] = self.default_version
+        excludes_lower = map(lambda x: x.lower(), excludes)
+        for package in versions.keys():
+            if package.lower() in excludes_lower:
+                del versions[package]
         logger.info('- %d packages need to be checked for updates.' %
                     len(versions))
         return versions
@@ -109,7 +126,6 @@ class VersionsChecker(object):
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(package))
-
         return versions
 
     def fetch_last_version(self, package):
@@ -117,7 +133,7 @@ class VersionsChecker(object):
         Fetch the last version of a package on Pypi.
         """
         package_key = package.lower()
-        max_version = '0.0'
+        max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
         client = xmlrpclib.ServerProxy(self.service_url)
         results = client.search({'name': package})
@@ -155,7 +171,11 @@ def cmdline(argv=None):
         help='The file where versions are pinned '
         '(default: versions.cfg)', default='versions.cfg')
     parser.add_argument(
-        '-e', '--exclude', action='append', dest='exclude',
+        '-i', '--include', action='append', dest='includes',
+        help='Include package when checking updates'
+        ' (can be used multiple times)', default=[]),
+    parser.add_argument(
+        '-e', '--exclude', action='append', dest='excludes',
         help='Exclude package when checking updates'
         ' (can be used multiple times)', default=[]),
     parser.add_argument(
@@ -185,7 +205,8 @@ def cmdline(argv=None):
 
     source = options.source
     try:
-        checker = VersionsChecker(source, options.exclude, options.threaded)
+        checker = VersionsChecker(
+            source, options.includes, options.excludes, options.threaded)
     except Exception as e:
         sys.exit(e.message)
 
@@ -196,6 +217,8 @@ def cmdline(argv=None):
         config = VersionsConfigParser()
         config.indentation = options.indentation
         config.read(source)
+        if not config.has_section('versions'):
+            config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
         config.write(source)

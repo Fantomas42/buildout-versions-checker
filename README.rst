@@ -38,9 +38,8 @@ Options
 
 ::
 
-  $ ./check-buildout-updates -h
-  usage: check-buildout-updates [-h] [-s SOURCE] [-e EXCLUDE] [-w]
-                                [--indent INDENTATION] [--no-threads] [-v]
+  usage: check-buildout-updates [-h] [-s SOURCE] [-i INCLUDES] [-e EXCLUDES]
+                                [-w] [--indent INDENTATION] [--no-threads] [-v]
 
   Check availables updates from a version section of a buildout script
 
@@ -49,7 +48,10 @@ Options
     -s SOURCE, --source SOURCE
                           The file where versions are pinned (default:
                           versions.cfg)
-    -e EXCLUDE, --exclude EXCLUDE
+    -i INCLUDES, --include INCLUDES
+                          Include package when checking updates (can be used
+                          multiple times)
+    -e EXCLUDES, --exclude EXCLUDES
                           Exclude package when checking updates (can be used
                           multiple times)
     -w, --write           Write the updates in the source file
