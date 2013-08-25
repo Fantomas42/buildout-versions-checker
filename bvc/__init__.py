@@ -63,20 +63,24 @@ class VersionsChecker(object):
         """
         self.source = source
         self.threaded = threaded
-        self.exclude = map(lambda x: x.lower(), exclude)
         self.versions = OrderedDict(
-            self.parse_versions(self.source, self.exclude))
+            self.parse_versions(self.source))
+        self.exclude = map(lambda x: x.lower(), exclude)
+        for index, version in enumerate(self.versions.keys()):
+            if version.lower() in exclude:
+                del self.versions[version]
+        logger.info('- %d packages need to be checked for updates.' %
+                    len(self.versions))
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
                                      self.threaded))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
-    def parse_versions(self, source, exclude):
+    def parse_versions(self, source):
         """
         Parses the source file to return the packages
-        with their current versions less the packages
-        passed in the exclude list.
+        with their current versions.
         """
         config = VersionsConfigParser()
         config.read(source)
@@ -84,13 +88,7 @@ class VersionsChecker(object):
             versions = config.items('versions')
         except NoSectionError:
             raise Exception('Versions are not found in %s' % source)
-
-        for index, version in enumerate(versions):
-            if version[0].lower() in exclude:
-                versions.pop(index)
-
-        logger.info('- %d packages need to be checked for updates.' %
-                    len(versions))
+        logger.info('- %d versions found in %s.' % (len(versions), source))
         return versions
 
     def fetch_last_versions(self, packages, threaded):
