@@ -216,6 +216,8 @@ def cmdline(argv=None):
         config = VersionsConfigParser()
         config.indentation = options.indentation
         config.read(source)
+        if not config.has_section('versions'):
+            config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
         config.write(source)
