@@ -85,7 +85,8 @@ class VersionsChecker(object):
         try:
             versions = config.items('versions')
         except NoSectionError:
-            raise Exception('Versions are not found in %s' % source)
+            logger.debug("'versions' section not found in %s." % source)
+            return {}
         logger.info('- %d versions found in %s.' % (len(versions), source))
         return versions
 
@@ -124,7 +125,6 @@ class VersionsChecker(object):
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(package))
-
         return versions
 
     def fetch_last_version(self, package):
