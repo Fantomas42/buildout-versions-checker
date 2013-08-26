@@ -39,7 +39,8 @@ Options
 ::
 
   usage: check-buildout-updates [-h] [-s SOURCE] [-i INCLUDES] [-e EXCLUDES]
-                                [-w] [--indent INDENTATION] [--no-threads] [-v]
+                                [-w] [--indent INDENTATION]
+                                [--service-url SERVICE_URL] [--no-threads] [-v]
 
   Check availables updates from a version section of a buildout script
 
@@ -56,6 +57,8 @@ Options
                           multiple times)
     -w, --write           Write the updates in the source file
     --indent INDENTATION  Spaces used when indenting "key = value" (default: 24)
+    --service-url SERVICE_URL
+                          The service to use for checking the packages
     --no-threads          Do not checks versions in parallel
     -v                    Increase verbosity (specify multiple times for more)
 
