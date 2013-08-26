@@ -55,9 +55,10 @@ class VersionsChecker(object):
     """
     max_worker = 10
     default_version = '0.0.0'
-    service_url = 'http://pypi.python.org/pypi'
 
-    def __init__(self, source, includes=[], excludes=[], threaded=True):
+    def __init__(self, source, includes=[], excludes=[],
+                 service_url = 'http://pypi.python.org/pypi',
+                 threaded=True):
         """
         Parses a config file containing pinned versions
         of eggs and check available updates.
@@ -66,6 +67,7 @@ class VersionsChecker(object):
         self.includes = includes
         self.excludes = excludes
         self.threaded = threaded
+        self.service_url = service_url
         self.source_versions = OrderedDict(
             self.parse_versions(self.source))
         self.versions = self.include_exclude_versions(
@@ -210,7 +212,8 @@ def cmdline(argv=None):
     source = options.source
     try:
         checker = VersionsChecker(
-            source, options.includes, options.excludes, options.threaded)
+            source, options.includes, options.excludes,
+            options.service_url, options.threaded)
     except Exception as e:
         sys.exit(e.message)
 
