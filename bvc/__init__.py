@@ -187,6 +187,10 @@ def cmdline(argv=None):
         help='Spaces used when indenting "key = value" (default: 24)',
         default=24)
     parser.add_argument(
+        '--service-url',  dest='service_url',
+        help='The service to use for checking the packages',
+        default='http://pypi.python.org/pypi')
+    parser.add_argument(
         '--no-threads', action='store_false', dest='threaded',
         help='Do not checks versions in parallel',
         default=True)
