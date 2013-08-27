@@ -50,42 +50,76 @@ class VersionsConfigParser(RawConfigParser):
 
 
 class VersionsChecker(object):
-    max_worker = 10
-    service_url = 'http://pypi.python.org/pypi'
+    """
+    Checks updates of packages from a config file on Pypi.
+    """
+    default_version = '0.0.0'
 
-    def __init__(self, source, exclude=[], threaded=True):
+    def __init__(self, source, includes=[], excludes=[],
+                 service_url = 'http://pypi.python.org/pypi',
+                 threads=10):
+        """
+        Parses a config file containing pinned versions
+        of eggs and check available updates.
+        """
         self.source = source
-        self.threaded = threaded
-        self.exclude = map(lambda x: x.lower(), exclude)
-        self.versions = OrderedDict(
-            self.parse_versions(self.source, self.exclude))
+        self.includes = includes
+        self.excludes = excludes
+        self.threads = threads
+        self.service_url = service_url
+        self.source_versions = OrderedDict(
+            self.parse_versions(self.source))
+        self.versions = self.include_exclude_versions(
+            self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
-                                     self.threaded))
+                                     self.threads))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
-    def parse_versions(self, source, exclude):
+    def parse_versions(self, source):
+        """
+        Parses the source file to return the packages
+        with their current versions.
+        """
         config = VersionsConfigParser()
         config.read(source)
         try:
             versions = config.items('versions')
         except NoSectionError:
-            raise Exception('Versions are not found in %s' % source)
+            logger.debug("'versions' section not found in %s." % source)
+            return {}
+        logger.info('- %d versions found in %s.' % (len(versions), source))
+        return versions
 
-        for index, version in enumerate(versions):
-            if version[0].lower() in exclude:
-                versions.pop(index)
-
+    def include_exclude_versions(self, source_versions,
+                                 includes=[], excludes=[]):
+        """
+        Includes and excludes packages to be checked in
+        the default dict of packages with versions.
+        """
+        versions = source_versions.copy()
+        packages_lower = map(lambda x: x.lower(), versions.keys())
+        for include in includes:
+            if include.lower() not in packages_lower:
+                versions[include] = self.default_version
+        excludes_lower = map(lambda x: x.lower(), excludes)
+        for package in versions.keys():
+            if package.lower() in excludes_lower:
+                del versions[package]
         logger.info('- %d packages need to be checked for updates.' %
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threaded):
+    def fetch_last_versions(self, packages, threads):
+        """
+        Fetch the latest versions of a list of packages,
+        in a threaded manner or not.
+        """
         versions = []
-        if threaded:
+        if threads > 1:
             with futures.ThreadPoolExecutor(
-                    max_workers=self.max_worker) as executor:
+                    max_workers=self.threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version, package)
                          for package in packages]
                 for task in futures.as_completed(tasks):
@@ -93,12 +127,14 @@ class VersionsChecker(object):
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(package))
-
         return versions
 
     def fetch_last_version(self, package):
+        """
+        Fetch the last version of a package on Pypi.
+        """
         package_key = package.lower()
-        max_version = '0.0'
+        max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
         client = xmlrpclib.ServerProxy(self.service_url)
         results = client.search({'name': package})
@@ -110,6 +146,10 @@ class VersionsChecker(object):
         return (package, max_version)
 
     def find_updates(self, versions, last_versions):
+        """
+        Compare the current versions of the packages
+        with the last versions to find updates.
+        """
         updates = []
         for package, current_version in self.versions.items():
             last_version = last_versions[package]
@@ -132,9 +172,17 @@ def cmdline(argv=None):
         help='The file where versions are pinned '
         '(default: versions.cfg)', default='versions.cfg')
     parser.add_argument(
-        '-e', '--exclude', action='append', dest='exclude',
+        '-i', '--include', action='append', dest='includes',
+        help='Include package when checking updates'
+        ' (can be used multiple times)', default=[]),
+    parser.add_argument(
+        '-e', '--exclude', action='append', dest='excludes',
         help='Exclude package when checking updates'
         ' (can be used multiple times)', default=[]),
+    parser.add_argument(
+        '-t', '--threads', dest='threads', type=int,
+        help='Threads used for checking the versions in parallel',
+        default=10)
     parser.add_argument(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
@@ -144,18 +192,14 @@ def cmdline(argv=None):
         help='Spaces used when indenting "key = value" (default: 24)',
         default=24)
     parser.add_argument(
-        '--no-threads', action='store_false', dest='threaded',
-        help='Do not checks versions in parallel',
-        default=True)
+        '--service-url',  dest='service_url',
+        help='The service to use for checking the packages',
+        default='http://pypi.python.org/pypi')
     parser.add_argument(
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
 
-    if argv is None:
-        argv = sys.argv[1:]
-    else:
-        argv = argv.split()
-    options = parser.parse_args(argv)
+    options = parser.parse_args(argv and argv.split() or sys.argv[1:])
 
     verbosity = options.verbosity
     if verbosity:
@@ -166,7 +210,9 @@ def cmdline(argv=None):
 
     source = options.source
     try:
-        checker = VersionsChecker(source, options.exclude, options.threaded)
+        checker = VersionsChecker(
+            source, options.includes, options.excludes,
+            options.service_url, options.threads)
     except Exception as e:
         sys.exit(e.message)
 
@@ -177,6 +223,8 @@ def cmdline(argv=None):
         config = VersionsConfigParser()
         config.indentation = options.indentation
         config.read(source)
+        if not config.has_section('versions'):
+            config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
         config.write(source)
