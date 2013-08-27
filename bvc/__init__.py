@@ -181,6 +181,10 @@ def cmdline(argv=None):
         help='Exclude package when checking updates'
         ' (can be used multiple times)', default=[]),
     parser.add_argument(
+        '-t', '--threads', dest='threaded', type=int,
+        help='Threads used for checking the versions in parallel',
+        default=10)
+    parser.add_argument(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
         default=False)
@@ -192,10 +196,6 @@ def cmdline(argv=None):
         '--service-url',  dest='service_url',
         help='The service to use for checking the packages',
         default='http://pypi.python.org/pypi')
-    parser.add_argument(
-        '--no-threads', action='store_false', dest='threaded',
-        help='Do not checks versions in parallel',
-        default=True)
     parser.add_argument(
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
