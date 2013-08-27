@@ -53,12 +53,11 @@ class VersionsChecker(object):
     """
     Checks updates of packages from a config file on Pypi.
     """
-    max_worker = 10
     default_version = '0.0.0'
 
     def __init__(self, source, includes=[], excludes=[],
                  service_url = 'http://pypi.python.org/pypi',
-                 threaded=True):
+                 threads=10):
         """
         Parses a config file containing pinned versions
         of eggs and check available updates.
@@ -66,7 +65,7 @@ class VersionsChecker(object):
         self.source = source
         self.includes = includes
         self.excludes = excludes
-        self.threaded = threaded
+        self.threads = threads
         self.service_url = service_url
         self.source_versions = OrderedDict(
             self.parse_versions(self.source))
@@ -74,7 +73,7 @@ class VersionsChecker(object):
             self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
-                                     self.threaded))
+                                     self.threads))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
@@ -112,15 +111,15 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threaded):
+    def fetch_last_versions(self, packages, threads):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
         """
         versions = []
-        if threaded:
+        if threads > 1:
             with futures.ThreadPoolExecutor(
-                    max_workers=self.max_worker) as executor:
+                    max_workers=self.threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version, package)
                          for package in packages]
                 for task in futures.as_completed(tasks):
@@ -181,6 +180,10 @@ def cmdline(argv=None):
         help='Exclude package when checking updates'
         ' (can be used multiple times)', default=[]),
     parser.add_argument(
+        '-t', '--threads', dest='threads', type=int,
+        help='Threads used for checking the versions in parallel',
+        default=10)
+    parser.add_argument(
         '-w', '--write', action='store_true', dest='write',
         help='Write the updates in the source file',
         default=False)
@@ -192,10 +195,6 @@ def cmdline(argv=None):
         '--service-url',  dest='service_url',
         help='The service to use for checking the packages',
         default='http://pypi.python.org/pypi')
-    parser.add_argument(
-        '--no-threads', action='store_false', dest='threaded',
-        help='Do not checks versions in parallel',
-        default=True)
     parser.add_argument(
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
@@ -213,7 +212,7 @@ def cmdline(argv=None):
     try:
         checker = VersionsChecker(
             source, options.includes, options.excludes,
-            options.service_url, options.threaded)
+            options.service_url, options.threads)
     except Exception as e:
         sys.exit(e.message)
 
