@@ -7,3 +7,7 @@ lib/
 dist/
 build/
 bvc.egg-info/
+.installed.cfg
+TODO
+develop-eggs/
+eggs/
