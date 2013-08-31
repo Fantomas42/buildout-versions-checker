@@ -56,7 +56,7 @@ class VersionsChecker(object):
     default_version = '0.0.0'
 
     def __init__(self, source, includes=[], excludes=[],
-                 service_url = 'http://pypi.python.org/pypi',
+                 service_url='http://pypi.python.org/pypi',
                  threads=10):
         """
         Parses a config file containing pinned versions
