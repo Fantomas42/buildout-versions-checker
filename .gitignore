@@ -6,6 +6,7 @@ include/
 lib/
 dist/
 build/
+local/
 bvc.egg-info/
 .installed.cfg
 TODO
