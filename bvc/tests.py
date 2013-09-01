@@ -6,6 +6,9 @@ from unittest import TestLoader
 from bvc import VersionsChecker
 from bvc import VersionsConfigParser
 
+VersionsChecker
+VersionsConfigParser
+
 
 class VersionsCheckerTestCase(TestCase):
     pass
