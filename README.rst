@@ -2,6 +2,8 @@
 Buildout Versions Checker
 =========================
 
+|travis-develop| |coverage-develop|
+
 Parses a `zc.buildout`_ file containing a ``versions`` section of the
 pinned versions of the eggs, and checks if any updates are available.
 
@@ -70,3 +72,9 @@ Requirements
 * futures >= 2.1.4
 
 .. _`zc.buildout`: http://www.buildout.org/
+.. |travis-develop| image:: https://travis-ci.org/Fantomas42/buildout-versions-checker.png?branch=develop
+   :alt: Build Status - develop branch
+   :target: http://travis-ci.org/Fantomas42/buildout-versions-checker
+.. |coverage-develop| image:: https://coveralls.io/repos/Fantomas42/buildout-versions-checker/badge.png?branch=develop
+   :alt: Coverage of the code
+   :target: https://coveralls.io/r/Fantomas42/buildout-versions-checker
