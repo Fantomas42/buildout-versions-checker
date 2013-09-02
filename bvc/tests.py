@@ -1,5 +1,6 @@
 """Tests for Buildout version checker"""
 from tempfile import TemporaryFile
+from tempfile import NamedTemporaryFile
 
 from unittest import TestCase
 from unittest import TestSuite
@@ -63,6 +64,27 @@ class VersionsConfigParserTestCase(TestCase):
             'Option-void = \n'
             'Option-multiline= Value1\n'
             '              Value2\n')
+        config_file.close()
+
+    def test_write(self):
+        config_file = NamedTemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section 1')
+        config_parser.add_section('Section 2')
+        config_parser.set('Section 1', 'Option', 'Value')
+        config_parser.set('Section 1', 'Option-void', None)
+        config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
+        config_parser.write(config_file.name)
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[Section 1]\n'
+            'Option                  = Value\n'
+            'Option-void             = \n'
+            '\n'
+            '[Section 2]\n'
+            'Option-multiline        = Value1\n'
+            '                          Value2\n')
         config_file.close()
 
 
