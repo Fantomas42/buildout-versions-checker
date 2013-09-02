@@ -28,6 +28,39 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(config_parser.options('Section'), ['KEY', 'Key'])
         config_file.close()
 
+    def test_write_section(self):
+        config_file = TemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section')
+        config_parser.set('Section', 'Option', 'Value')
+        config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
+        config_parser.write_section(config_file, 'Section')
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[Section]\n'
+            'Option                  = Value\n'
+            'Option-multiline        = Value1\n'
+            '                          Value2\n')
+        config_file.close()
+
+    def test_write_section_custom_indentation(self):
+        config_file = TemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.indentation = 12
+        config_parser.add_section('Section')
+        config_parser.set('Section', 'Option', 'Value')
+        config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
+        config_parser.write_section(config_file, 'Section')
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[Section]\n'
+            'Option      = Value\n'
+            'Option-multiline= Value1\n'
+            '              Value2\n')
+        config_file.close()
+
 
 class CommandLineTestCase(TestCase):
     pass
@@ -35,9 +68,9 @@ class CommandLineTestCase(TestCase):
 
 loader = TestLoader()
 
-test_suite = TestSuite([
-    loader.loadTestsFromTestCase(VersionsCheckerTestCase),
-    loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
-    loader.loadTestsFromTestCase(CommandLineTestCase)
-    ]
+test_suite = TestSuite(
+    [loader.loadTestsFromTestCase(VersionsCheckerTestCase),
+     loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
+     loader.loadTestsFromTestCase(CommandLineTestCase)
+     ]
 )
