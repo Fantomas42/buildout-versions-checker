@@ -88,7 +88,7 @@ class VersionsChecker(object):
             versions = config.items('versions')
         except NoSectionError:
             logger.debug("'versions' section not found in %s." % source)
-            return {}
+            return []
         logger.info('- %d versions found in %s.' % (len(versions), source))
         return versions
 
