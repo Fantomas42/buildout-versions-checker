@@ -33,6 +33,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.add_section('Section')
         config_parser.set('Section', 'Option', 'Value')
+        config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
         config_parser.write_section(config_file, 'Section')
         config_file.seek(0)
@@ -40,6 +41,7 @@ class VersionsConfigParserTestCase(TestCase):
             ''.join(config_file.readlines()),
             '[Section]\n'
             'Option                  = Value\n'
+            'Option-void             = \n'
             'Option-multiline        = Value1\n'
             '                          Value2\n')
         config_file.close()
@@ -50,6 +52,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.indentation = 12
         config_parser.add_section('Section')
         config_parser.set('Section', 'Option', 'Value')
+        config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
         config_parser.write_section(config_file, 'Section')
         config_file.seek(0)
@@ -57,6 +60,7 @@ class VersionsConfigParserTestCase(TestCase):
             ''.join(config_file.readlines()),
             '[Section]\n'
             'Option      = Value\n'
+            'Option-void = \n'
             'Option-multiline= Value1\n'
             '              Value2\n')
         config_file.close()
