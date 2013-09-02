@@ -119,7 +119,7 @@ class VersionsChecker(object):
         versions = []
         if threads > 1:
             with futures.ThreadPoolExecutor(
-                    max_workers=self.threads) as executor:
+                    max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version, package)
                          for package in packages]
                 for task in futures.as_completed(tasks):
