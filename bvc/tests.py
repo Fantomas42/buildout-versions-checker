@@ -1,4 +1,5 @@
 """Tests for Buildout version checker"""
+from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
 from unittest import TestCase
@@ -22,10 +23,10 @@ class LazyVersionsChecker(VersionsChecker):
 class VersionsCheckerTestCase(TestCase):
 
     def test_parse_versions(self):
+        checker = LazyVersionsChecker()
         config_file = NamedTemporaryFile()
         config_file.write('[sections]\nKey=Value\n')
         config_file.seek(0)
-        checker = LazyVersionsChecker()
         self.assertEquals(checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
@@ -39,6 +40,38 @@ class VersionsCheckerTestCase(TestCase):
         self.assertEquals(checker.parse_versions(config_file.name),
                           [('egg', '0.1'), ('Egg', '0.2')])
         config_file.close()
+
+    def test_include_exclude_versions(self):
+        checker = LazyVersionsChecker()
+        source_versions = OrderedDict([('egg', '0.1'), ('Egg', '0.2')])
+        self.assertEquals(checker.include_exclude_versions(
+            source_versions), source_versions)
+        results = source_versions.copy()
+        results['Django'] = '0.0.0'
+        self.assertEquals(
+            checker.include_exclude_versions(
+                source_versions, includes=['Django', 'egg']),
+            results)
+        source_versions['Django'] = '1.5.1'
+        source_versions['pytz'] = '2013b'
+        results = OrderedDict([('pytz', '2013b')])
+        self.assertEquals(
+            checker.include_exclude_versions(
+                source_versions, excludes=['Django', 'egg']),
+            results)
+        self.assertEquals(
+            checker.include_exclude_versions(
+                source_versions,
+                includes=['Django', 'egg'],
+                excludes=['Django', 'egg']),
+            results)
+        results['zc.buildout'] = '0.0.0'
+        self.assertEquals(
+            checker.include_exclude_versions(
+                source_versions,
+                includes=['zc.buildout'],
+                excludes=['Django', 'egg']),
+            results)
 
 
 class VersionsConfigParserTestCase(TestCase):
