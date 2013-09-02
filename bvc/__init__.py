@@ -151,7 +151,7 @@ class VersionsChecker(object):
         with the last versions to find updates.
         """
         updates = []
-        for package, current_version in self.versions.items():
+        for package, current_version in versions.items():
             last_version = last_versions[package]
             if last_version != current_version:
                 logger.debug(

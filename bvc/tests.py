@@ -73,6 +73,19 @@ class VersionsCheckerTestCase(TestCase):
                 excludes=['Django', 'egg']),
             results)
 
+    def test_fetch_last_versions(self):
+        pass
+
+    def test_fetch_last_version(self):
+        pass
+
+    def test_find_updates(self):
+        checker = LazyVersionsChecker()
+        versions = OrderedDict([('egg', '1.5.1'), ('Egg', '0.0.0')])
+        last_versions = OrderedDict([('egg', '1.5.1'), ('Egg', '1.0')])
+        self.assertEquals(checker.find_updates(
+            versions, last_versions), [('Egg', '1.0')])
+
 
 class VersionsConfigParserTestCase(TestCase):
 
