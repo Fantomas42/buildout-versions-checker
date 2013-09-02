@@ -3,6 +3,7 @@ source		= bvc
 omit		= bvc/tests.py
 
 [report]
+source		= bvc
 exclude_lines	=
     pragma: no cover
 show_missing    = True
