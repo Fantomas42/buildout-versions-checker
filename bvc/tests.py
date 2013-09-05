@@ -116,7 +116,15 @@ class VersionsCheckerTestCase(TestCase):
             results)
 
     def test_fetch_last_versions(self):
-        pass
+        self.assertEquals(
+            self.checker.fetch_last_versions(
+                ['egg', 'UnknowEgg'], 1, 'service_url'),
+            [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
+        results = self.checker.fetch_last_versions(
+            ['egg', 'UnknowEgg'], 2, 'service_url')
+        self.assertEquals(
+            dict(results),
+            dict([('egg', '0.3'), ('UnknowEgg', '0.0.0')]))
 
     def test_fetch_last_version(self):
         self.assertEquals(

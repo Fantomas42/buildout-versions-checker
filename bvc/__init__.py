@@ -128,7 +128,8 @@ class VersionsChecker(object):
                     versions.append(task.result())
         else:
             for package in packages:
-                versions.append(self.fetch_last_version(package))
+                versions.append(self.fetch_last_version(
+                    package, service_url))
         return versions
 
     def fetch_last_version(self, package, service_url):
