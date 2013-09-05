@@ -217,7 +217,7 @@ def cmdline(argv=None):
             source, options.includes, options.excludes,
             options.service_url, options.threads)
     except Exception as e:
-        sys.exit(e.message)
+        sys.exit(e.message or str(e))
 
     if not checker.updates:
         sys.exit(0)
