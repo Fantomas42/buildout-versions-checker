@@ -3,7 +3,7 @@ import futures
 
 import sys
 import logging
-import xmlrpclib
+from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
 from collections import OrderedDict
 from ConfigParser import NoSectionError
@@ -138,7 +138,7 @@ class VersionsChecker(object):
         package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
-        client = xmlrpclib.ServerProxy(service_url)
+        client = ServerProxy(service_url)
         results = client.search({'name': package})
         for result in results:
             if result['name'].lower() == package_key:

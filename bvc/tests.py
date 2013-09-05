@@ -6,6 +6,7 @@ from unittest import TestCase
 from unittest import TestSuite
 from unittest import TestLoader
 
+import bvc
 from bvc import VersionsChecker
 from bvc import VersionsConfigParser
 
@@ -20,7 +21,43 @@ class LazyVersionsChecker(VersionsChecker):
             setattr(self, key, value)
 
 
+class PypiServerProxy(object):
+    """
+    Fake Pypi proxy server.
+    """
+    results = {
+        'egg': [
+            {'name': 'Egg', 'version': '0.2'},
+            {'name': 'EGG', 'version': '0.3'},
+            {'name': 'eggtractor', 'version': '0.42'}
+        ]
+    }
+
+    def __init__(*ka, **kw):
+        pass
+
+    def search(self, query_dict):
+        try:
+            return self.results[query_dict['name']]
+        except KeyError:
+            pass
+        return []
+
+
 class VersionsCheckerTestCase(TestCase):
+
+    def stub_server_proxy(self):
+        """
+        Replace the ServerProxy class used in bvc.
+        """
+        self.original_server_proxy = bvc.ServerProxy
+        bvc.ServerProxy = PypiServerProxy
+
+    def unstub_server_proxy(self):
+        """
+        Restaure the original ServerProxy class.
+        """
+        bvc.ServerProxy = self.original_server_proxy
 
     def test_parse_versions(self):
         checker = LazyVersionsChecker()
@@ -77,7 +114,17 @@ class VersionsCheckerTestCase(TestCase):
         pass
 
     def test_fetch_last_version(self):
-        pass
+        self.stub_server_proxy()
+        checker = LazyVersionsChecker()
+        self.assertEquals(
+            checker.fetch_last_version('UnknowEgg', 'service_url'),
+            ('UnknowEgg', '0.0.0')
+        )
+        self.assertEquals(
+            checker.fetch_last_version('egg', 'service_url'),
+            ('egg', '0.3')
+        )
+        self.unstub_server_proxy()
 
     def test_find_updates(self):
         checker = LazyVersionsChecker()
