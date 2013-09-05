@@ -46,6 +46,13 @@ class PypiServerProxy(object):
 
 class VersionsCheckerTestCase(TestCase):
 
+    def setUp(self):
+        self.checker = LazyVersionsChecker()
+        self.stub_server_proxy()
+
+    def tearDown(self):
+        self.unstub_server_proxy()
+
     def stub_server_proxy(self):
         """
         Replace the ServerProxy class used in bvc.
@@ -60,51 +67,49 @@ class VersionsCheckerTestCase(TestCase):
         bvc.ServerProxy = self.original_server_proxy
 
     def test_parse_versions(self):
-        checker = LazyVersionsChecker()
         config_file = NamedTemporaryFile()
         config_file.write('[sections]\nKey=Value\n')
         config_file.seek(0)
-        self.assertEquals(checker.parse_versions(config_file.name),
+        self.assertEquals(self.checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
         config_file.write('[VERSIONS]\negg=0.1\nEgg = 0.2')
         config_file.seek(0)
-        self.assertEquals(checker.parse_versions(config_file.name),
+        self.assertEquals(self.checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
         config_file.write('[versions]\negg=0.1\nEgg = 0.2')
         config_file.seek(0)
-        self.assertEquals(checker.parse_versions(config_file.name),
+        self.assertEquals(self.checker.parse_versions(config_file.name),
                           [('egg', '0.1'), ('Egg', '0.2')])
         config_file.close()
 
     def test_include_exclude_versions(self):
-        checker = LazyVersionsChecker()
         source_versions = OrderedDict([('egg', '0.1'), ('Egg', '0.2')])
-        self.assertEquals(checker.include_exclude_versions(
+        self.assertEquals(self.checker.include_exclude_versions(
             source_versions), source_versions)
         results = source_versions.copy()
         results['Django'] = '0.0.0'
         self.assertEquals(
-            checker.include_exclude_versions(
+            self.checker.include_exclude_versions(
                 source_versions, includes=['Django', 'egg']),
             results)
         source_versions['Django'] = '1.5.1'
         source_versions['pytz'] = '2013b'
         results = OrderedDict([('pytz', '2013b')])
         self.assertEquals(
-            checker.include_exclude_versions(
+            self.checker.include_exclude_versions(
                 source_versions, excludes=['Django', 'egg']),
             results)
         self.assertEquals(
-            checker.include_exclude_versions(
+            self.checker.include_exclude_versions(
                 source_versions,
                 includes=['Django', 'egg'],
                 excludes=['Django', 'egg']),
             results)
         results['zc.buildout'] = '0.0.0'
         self.assertEquals(
-            checker.include_exclude_versions(
+            self.checker.include_exclude_versions(
                 source_versions,
                 includes=['zc.buildout'],
                 excludes=['Django', 'egg']),
@@ -114,23 +119,19 @@ class VersionsCheckerTestCase(TestCase):
         pass
 
     def test_fetch_last_version(self):
-        self.stub_server_proxy()
-        checker = LazyVersionsChecker()
         self.assertEquals(
-            checker.fetch_last_version('UnknowEgg', 'service_url'),
+            self.checker.fetch_last_version('UnknowEgg', 'service_url'),
             ('UnknowEgg', '0.0.0')
         )
         self.assertEquals(
-            checker.fetch_last_version('egg', 'service_url'),
+            self.checker.fetch_last_version('egg', 'service_url'),
             ('egg', '0.3')
         )
-        self.unstub_server_proxy()
 
     def test_find_updates(self):
-        checker = LazyVersionsChecker()
         versions = OrderedDict([('egg', '1.5.1'), ('Egg', '0.0.0')])
         last_versions = OrderedDict([('egg', '1.5.1'), ('Egg', '1.0')])
-        self.assertEquals(checker.find_updates(
+        self.assertEquals(self.checker.find_updates(
             versions, last_versions), [('Egg', '1.0')])
 
 
