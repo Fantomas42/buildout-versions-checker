@@ -239,11 +239,10 @@ class VersionsConfigParserTestCase(TestCase):
 
 class CommandLineTestCase(StubbedServerProxyTestCase):
 
-    def test_no_args(self):
-        pass
-
-    def test_no_source(self):
-        pass
+    def test_no_args_no_source(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('')
+        self.assertEqual(context.exception.code, 0)
 
 
 loader = TestLoader()
