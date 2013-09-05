@@ -8,6 +8,6 @@ install:
 before_script:
     - ./bin/flake8 bvc
 script:
-    - ./bin/test
+    - ./bin/cover
 after_success:
     - ./bin/coveralls

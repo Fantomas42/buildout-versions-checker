@@ -3,7 +3,7 @@ import futures
 
 import sys
 import logging
-import xmlrpclib
+from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
 from collections import OrderedDict
 from ConfigParser import NoSectionError
@@ -73,7 +73,8 @@ class VersionsChecker(object):
             self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
-                                     self.threads))
+                                     self.threads,
+                                     self.service_url))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
@@ -88,7 +89,7 @@ class VersionsChecker(object):
             versions = config.items('versions')
         except NoSectionError:
             logger.debug("'versions' section not found in %s." % source)
-            return {}
+            return []
         logger.info('- %d versions found in %s.' % (len(versions), source))
         return versions
 
@@ -111,7 +112,7 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threads):
+    def fetch_last_versions(self, packages, threads, service_url):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
@@ -119,24 +120,26 @@ class VersionsChecker(object):
         versions = []
         if threads > 1:
             with futures.ThreadPoolExecutor(
-                    max_workers=self.threads) as executor:
-                tasks = [executor.submit(self.fetch_last_version, package)
+                    max_workers=threads) as executor:
+                tasks = [executor.submit(self.fetch_last_version,
+                                         package, service_url)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
-                versions.append(self.fetch_last_version(package))
+                versions.append(self.fetch_last_version(
+                    package, service_url))
         return versions
 
-    def fetch_last_version(self, package):
+    def fetch_last_version(self, package, service_url):
         """
         Fetch the last version of a package on Pypi.
         """
         package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
-        client = xmlrpclib.ServerProxy(self.service_url)
+        client = ServerProxy(service_url)
         results = client.search({'name': package})
         for result in results:
             if result['name'].lower() == package_key:
@@ -151,7 +154,7 @@ class VersionsChecker(object):
         with the last versions to find updates.
         """
         updates = []
-        for package, current_version in self.versions.items():
+        for package, current_version in versions.items():
             last_version = last_versions[package]
             if last_version != current_version:
                 logger.debug(
