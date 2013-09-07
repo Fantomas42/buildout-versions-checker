@@ -19,9 +19,8 @@ class VersionsConfigParser(RawConfigParser):
     beautiful buildout files.
     """
     optionxform = str
-    indentation = 24
 
-    def write_section(self, fd, section):
+    def write_section(self, fd, section, indentation):
         """
         Write a section of an .ini-format
         and all the keys within.
@@ -32,11 +31,11 @@ class VersionsConfigParser(RawConfigParser):
                 if value is None:
                     value = ''
                 fd.write('%s= %s\n' % (
-                    key.ljust(self.indentation),
+                    key.ljust(indentation),
                     str(value).replace(
-                        '\n', '\n'.ljust(self.indentation + 3))))
+                        '\n', '\n'.ljust(indentation + 3))))
 
-    def write(self, source):
+    def write(self, source, indentation=24):
         """
         Write an .ini-format representation of the
         configuration state with a readable indentation.
@@ -44,9 +43,9 @@ class VersionsConfigParser(RawConfigParser):
         with open(source, 'wb') as fd:
             sections = self._sections.keys()
             for section in sections[:-1]:
-                self.write_section(fd, section)
+                self.write_section(fd, section, indentation)
                 fd.write('\n')
-            self.write_section(fd, sections[-1])
+            self.write_section(fd, sections[-1], indentation)
 
 
 class VersionsChecker(object):
@@ -224,13 +223,12 @@ def cmdline(argv=None):
 
     if options.write:
         config = VersionsConfigParser()
-        config.indentation = options.indentation
         config.read(source)
         if not config.has_section('versions'):
             config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
-        config.write(source)
+        config.write(source, options.indentation)
         logger.info('- %s updated.' % source)
     else:
         print('[versions]')
