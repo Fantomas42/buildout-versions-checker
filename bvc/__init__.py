@@ -202,8 +202,8 @@ def cmdline(argv=None):
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
 
-    options = parser.parse_args(argv and argv.split() or sys.argv[1:])
-
+    options = parser.parse_args(not isinstance(argv, basestring) and
+                                sys.argv[1:] or argv.split())
     verbosity = options.verbosity
     if verbosity:
         console = logging.StreamHandler(sys.stdout)
