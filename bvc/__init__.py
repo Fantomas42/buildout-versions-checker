@@ -165,7 +165,7 @@ class VersionsChecker(object):
         return updates
 
 
-def cmdline(argv=None):
+def cmdline(argv=sys.argv[1:]):
     parser = ArgumentParser(
         description='Check availables updates from a '
         'version section of a buildout script')
@@ -201,8 +201,10 @@ def cmdline(argv=None):
         '-v', action='count', dest='verbosity',
         help='Increase verbosity (specify multiple times for more)')
 
-    options = parser.parse_args(not isinstance(argv, basestring) and
-                                sys.argv[1:] or argv.split())
+    if isinstance(argv, basestring):
+        argv = argv.split()
+    options = parser.parse_args(argv)
+
     verbosity = options.verbosity
     if verbosity:
         console = logging.StreamHandler(sys.stdout)
