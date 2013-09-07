@@ -6,4 +6,10 @@ include/
 lib/
 dist/
 build/
+local/
 bvc.egg-info/
+.installed.cfg
+.coverage
+TODO
+develop-eggs/
+eggs/
