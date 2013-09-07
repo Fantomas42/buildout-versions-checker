@@ -1,4 +1,5 @@
 """Tests for Buildout version checker"""
+from logging import Handler
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
@@ -7,6 +8,7 @@ from unittest import TestSuite
 from unittest import TestLoader
 
 import bvc
+from bvc import logger
 from bvc import cmdline
 from bvc import VersionsChecker
 from bvc import VersionsConfigParser
@@ -52,9 +54,11 @@ class StubbedServerProxyTestCase(TestCase):
     """
     def setUp(self):
         self.stub_server_proxy()
+        super(StubbedServerProxyTestCase, self).setUp()
 
     def tearDown(self):
         self.unstub_server_proxy()
+        super(StubbedServerProxyTestCase, self).tearDown()
 
     def stub_server_proxy(self):
         """
@@ -68,6 +72,48 @@ class StubbedServerProxyTestCase(TestCase):
         Restaure the original ServerProxy class.
         """
         bvc.ServerProxy = self.original_server_proxy
+
+
+class DictHandler(Handler):
+    """
+    Logging handler to check for expected logs.
+    """
+
+    def __init__(self, *ka, **kw):
+        self.messages = {
+            'debug': [], 'info': [],
+            'warning': [], 'error': [],
+            'critical': []
+        }
+        super(DictHandler, self).__init__(*ka, **kw)
+
+    def emit(self, record):
+        self.messages[record.levelname.lower()
+                      ].append(record.getMessage())
+
+
+class LogsTestCase(TestCase):
+    """
+    TestCase allowing to check the messages
+    emitted by the logs.
+    """
+    def setUp(self):
+        self.logs = DictHandler()
+        logger.addHandler(self.logs)
+        super(LogsTestCase, self).setUp()
+
+    def tearDown(self):
+        logger.removeHandler(self.logs)
+        super(LogsTestCase, self).tearDown()
+
+    def assertLogs(self, debug=[], info=[], warning=[],
+                   error=[], critical=[]):
+        expected = {'debug': debug, 'info': info,
+                    'warning': warning, 'error': error,
+                    'critical': critical}
+        for key, item in expected.items():
+            self.assertEquals(self.logs.messages[key],
+                              item)
 
 
 class VersionsCheckerTestCase(StubbedServerProxyTestCase):
@@ -237,12 +283,17 @@ class VersionsConfigParserTestCase(TestCase):
         config_file.close()
 
 
-class CommandLineTestCase(StubbedServerProxyTestCase):
+class CommandLineTestCase(LogsTestCase,
+                          StubbedServerProxyTestCase):
 
     def test_no_args_no_source(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('')
         self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg."],
+            info=['- 0 packages need to be checked for updates.',
+                  '- 0 package updates found.'])
 
 
 loader = TestLoader()
