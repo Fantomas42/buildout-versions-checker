@@ -231,7 +231,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section', 'Option', 'Value')
         config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write_section(config_file, 'Section')
+        config_parser.write_section(config_file, 'Section', 24)
         config_file.seek(0)
         self.assertEquals(
             ''.join(config_file.readlines()),
@@ -242,15 +242,14 @@ class VersionsConfigParserTestCase(TestCase):
             '                          Value2\n')
         config_file.close()
 
-    def test_write_section_custom_indentation(self):
+    def test_write_section_low_indentation(self):
         config_file = NamedTemporaryFile()
         config_parser = VersionsConfigParser()
-        config_parser.indentation = 12
         config_parser.add_section('Section')
         config_parser.set('Section', 'Option', 'Value')
         config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write_section(config_file, 'Section')
+        config_parser.write_section(config_file, 'Section', 12)
         config_file.seek(0)
         self.assertEquals(
             ''.join(config_file.readlines()),
@@ -280,6 +279,27 @@ class VersionsConfigParserTestCase(TestCase):
             '[Section 2]\n'
             'Option-multiline        = Value1\n'
             '                          Value2\n')
+        config_file.close()
+
+    def test_write_low_indentation(self):
+        config_file = NamedTemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section 1')
+        config_parser.add_section('Section 2')
+        config_parser.set('Section 1', 'Option', 'Value')
+        config_parser.set('Section 1', 'Option-void', None)
+        config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
+        config_parser.write(config_file.name, 12)
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[Section 1]\n'
+            'Option      = Value\n'
+            'Option-void = \n'
+            '\n'
+            '[Section 2]\n'
+            'Option-multiline= Value1\n'
+            '              Value2\n')
         config_file.close()
 
 
