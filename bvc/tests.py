@@ -368,6 +368,16 @@ class CommandLineTestCase(LogsTestCase,
                   '- 0 package updates found.'])
         self.assertStdOut('')
 
+    def test_include_exclude(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i unavailable -e unavailable')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg."],
+            info=['- 0 packages need to be checked for updates.',
+                  '- 0 package updates found.'])
+        self.assertStdOut('')
+
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('-i egg')
