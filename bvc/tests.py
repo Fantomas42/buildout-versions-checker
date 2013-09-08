@@ -398,6 +398,17 @@ class CommandLineTestCase(LogsTestCase,
         with self.assertRaises(SystemExit) as context:
             cmdline('-e excluded -w -s %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=['-> Last version of egg is 0.3.',
+                   '=> egg current version (0.1) and '
+                   'last version (0.3) are different.'],
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 1 packages need to be checked for updates.',
+                  '> Fetching latest datas for egg...',
+                  '- 1 package updates found.',
+                  '- %s updated.' % config_file.name],
+            warning=['[versions]',
+                     'egg                     = 0.3'])
         config_file.seek(0)
         self.assertEquals(
             ''.join(config_file.readlines()),
