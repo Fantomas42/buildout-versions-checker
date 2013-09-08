@@ -2,6 +2,7 @@
 import futures
 
 import sys
+import socket
 import logging
 from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
@@ -57,7 +58,7 @@ class VersionsChecker(object):
 
     def __init__(self, source, includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
-                 threads=10):
+                 timeout=10, threads=10):
         """
         Parses a config file containing pinned versions
         of eggs and check available updates.
@@ -65,6 +66,7 @@ class VersionsChecker(object):
         self.source = source
         self.includes = includes
         self.excludes = excludes
+        self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
         self.source_versions = OrderedDict(
@@ -139,8 +141,10 @@ class VersionsChecker(object):
         package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
+        socket.setdefaulttimeout(self.timeout)
         client = ServerProxy(service_url)
         results = client.search({'name': package})
+        socket.setdefaulttimeout(None)
         for result in results:
             if result['name'].lower() == package_key:
                 if LooseVersion(result['version']) > LooseVersion(max_version):
