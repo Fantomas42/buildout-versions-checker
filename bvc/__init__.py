@@ -245,4 +245,4 @@ def cmdline(argv=sys.argv[1:]):
 
 
 if __name__ == '__main__':
-    cmdline()
+    cmdline()  # pragma: no cover
