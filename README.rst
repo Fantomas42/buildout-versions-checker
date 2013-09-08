@@ -80,7 +80,7 @@ automaticly find and write the updates. ::
 
   [evolution]
   recipe                  = zc.recipe.egg
-  eggs                    = bvc
+  eggs                    = buildout-versions-checker
   scripts                 = check-buildout-updates=evolve
   arguments               = '-s buildout.cfg -w'
 
