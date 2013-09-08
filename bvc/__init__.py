@@ -170,42 +170,42 @@ def cmdline(argv=sys.argv[1:]):
         description='Check availables updates from a '
         'version section of a buildout script')
     parser.add_argument(
-        '-s', '--source', dest='source',
+        '-s', '--source', dest='source', default='versions.cfg',
         help='The file where versions are pinned '
-        '(default: versions.cfg)', default='versions.cfg')
+        '(default: versions.cfg)')
     parser.add_argument(
-        '-i', '--include', action='append', dest='includes',
-        help='Include package when checking updates'
-        ' (can be used multiple times)', default=[]),
+        '-i', '--include', action='append', dest='includes', default=[],
+        help='Include package when checking updates '
+        '(can be used multiple times)')
     parser.add_argument(
-        '-e', '--exclude', action='append', dest='excludes',
-        help='Exclude package when checking updates'
-        ' (can be used multiple times)', default=[]),
+        '-e', '--exclude', action='append', dest='excludes', default=[],
+        help='Exclude package when checking updates '
+        '(can be used multiple times)')
     parser.add_argument(
-        '-t', '--threads', dest='threads', type=int,
-        help='Threads used for checking the versions in parallel',
-        default=10)
+        '-t', '--threads', dest='threads', type=int, default=10,
+        help='Threads used for checking the versions in parallel')
     parser.add_argument(
-        '-w', '--write', action='store_true', dest='write',
-        help='Write the updates in the source file',
-        default=False)
+        '-w', '--write', action='store_true', dest='write', default=False,
+        help='Write the updates in the source file')
     parser.add_argument(
-        '--indent', dest='indentation', type=int,
-        help='Spaces used when indenting "key = value" (default: 24)',
-        default=24)
+        '--indent', dest='indentation', type=int, default=24,
+        help='Spaces used when indenting "key = value" (default: 24)')
     parser.add_argument(
         '--service-url',  dest='service_url',
-        help='The service to use for checking the packages',
-        default='http://pypi.python.org/pypi')
+        default='http://pypi.python.org/pypi',
+        help='The service to use for checking the packages')
     parser.add_argument(
-        '-v', action='count', dest='verbosity',
+        '-v', action='count', dest='verbosity', default=1,
         help='Increase verbosity (specify multiple times for more)')
+    parser.add_argument(
+        '-q', action='count', dest='quietly', default=0,
+        help='Decrease verbosity (specify multiple times for more)')
 
     if isinstance(argv, basestring):
         argv = argv.split()
     options = parser.parse_args(argv)
 
-    verbosity = options.verbosity
+    verbosity = options.verbosity - options.quietly
     if verbosity:
         console = logging.StreamHandler(sys.stdout)
         logger.addHandler(console)
