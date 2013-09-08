@@ -205,12 +205,14 @@ def cmdline(argv=sys.argv[1:]):
         argv = argv.split()
     options = parser.parse_args(argv)
 
-    verbosity = options.verbosity - options.quietly
-    if verbosity:
-        console = logging.StreamHandler(sys.stdout)
-        logger.addHandler(console)
-        logger.setLevel(verbosity >= 2 and
-                        logging.DEBUG or logging.INFO)
+    console = logging.StreamHandler(sys.stdout)
+    logger.addHandler(console)
+    verbose_logs = {0: 100,
+                    1: logging.WARNING,
+                    2: logging.INFO,
+                    3: logging.DEBUG}
+    verbosity = min(3, max(0, options.verbosity - options.quietly))
+    logger.setLevel(verbose_logs[verbosity])
 
     source = options.source
     try:
@@ -223,6 +225,11 @@ def cmdline(argv=sys.argv[1:]):
     if not checker.updates:
         sys.exit(0)
 
+    logger.warning('[versions]')
+    for package, version in checker.updates.items():
+        logger.warning('%s= %s' % (
+            package.ljust(options.indentation), version))
+
     if options.write:
         config = VersionsConfigParser()
         config.read(source)
@@ -232,10 +239,6 @@ def cmdline(argv=sys.argv[1:]):
             config.set('versions', package, version)
         config.write(source, options.indentation)
         logger.info('- %s updated.' % source)
-    else:
-        print('[versions]')
-        for package, version in checker.updates.items():
-            print('%s= %s' % (package.ljust(options.indentation), version))
 
     sys.exit(0)
 
