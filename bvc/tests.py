@@ -1,5 +1,7 @@
 """Tests for Buildout version checker"""
+import sys
 from logging import Handler
+from StringIO import StringIO
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
@@ -114,6 +116,26 @@ class LogsTestCase(TestCase):
         for key, item in expected.items():
             self.assertEquals(self.logs.messages[key],
                               item)
+
+
+class StdOutTestCase(TestCase):
+    """
+    TestCase for capturing printed output on stdout.
+    """
+    def setUp(self):
+        self.output = StringIO()
+        self.saved_stdout = sys.stdout
+        sys.stdout = self.output
+        super(StdOutTestCase, self).setUp()
+
+    def tearDown(self):
+        self.output.close()
+        sys.stdout = self.saved_stdout
+        super(StdOutTestCase, self).tearDown()
+
+    def assertStdOut(self, output):
+        self.assertEquals(self.output.getvalue(),
+                          output)
 
 
 class VersionsCheckerTestCase(StubbedServerProxyTestCase):
@@ -304,6 +326,7 @@ class VersionsConfigParserTestCase(TestCase):
 
 
 class CommandLineTestCase(LogsTestCase,
+                          StdOutTestCase,
                           StubbedServerProxyTestCase):
 
     def test_no_args_no_source(self):
@@ -314,6 +337,7 @@ class CommandLineTestCase(LogsTestCase,
             debug=["'versions' section not found in versions.cfg."],
             info=['- 0 packages need to be checked for updates.',
                   '- 0 package updates found.'])
+        self.assertStdOut('')
 
     def test_include_no_source(self):
         with self.assertRaises(SystemExit) as context:
@@ -329,6 +353,8 @@ class CommandLineTestCase(LogsTestCase,
                   '- 1 package updates found.'],
             warning=['[versions]',
                      'egg                     = 0.3'])
+        self.assertStdOut('[versions]\n'
+                          'egg                     = 0.3\n')
 
 
 loader = TestLoader()
