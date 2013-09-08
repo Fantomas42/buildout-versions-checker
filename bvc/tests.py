@@ -210,21 +210,21 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
     def test_fetch_last_versions(self):
         self.assertEquals(
             self.checker.fetch_last_versions(
-                ['egg', 'UnknowEgg'], 1, 'service_url'),
+                ['egg', 'UnknowEgg'], 1, 1, 'service_url'),
             [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
         results = self.checker.fetch_last_versions(
-            ['egg', 'UnknowEgg'], 2, 'service_url')
+            ['egg', 'UnknowEgg'], 2, 1, 'service_url')
         self.assertEquals(
             dict(results),
             dict([('egg', '0.3'), ('UnknowEgg', '0.0.0')]))
 
     def test_fetch_last_version(self):
         self.assertEquals(
-            self.checker.fetch_last_version('UnknowEgg', 'service_url'),
+            self.checker.fetch_last_version('UnknowEgg', 1, 'service_url'),
             ('UnknowEgg', '0.0.0')
         )
         self.assertEquals(
-            self.checker.fetch_last_version('egg', 'service_url'),
+            self.checker.fetch_last_version('egg', 1, 'service_url'),
             ('egg', '0.3')
         )
 

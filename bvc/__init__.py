@@ -76,6 +76,7 @@ class VersionsChecker(object):
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
                                      self.threads,
+                                     self.timeout,
                                      self.service_url))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
@@ -114,7 +115,7 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threads, service_url):
+    def fetch_last_versions(self, packages, threads, timeout, service_url):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
@@ -124,24 +125,24 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, service_url)
+                                         package, timeout, service_url)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, service_url))
+                    package, timeout, service_url))
         return versions
 
-    def fetch_last_version(self, package, service_url):
+    def fetch_last_version(self, package, timeout, service_url):
         """
         Fetch the last version of a package on Pypi.
         """
         package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
-        socket.setdefaulttimeout(self.timeout)
+        socket.setdefaulttimeout(timeout)
         client = ServerProxy(service_url)
         results = client.search({'name': package})
         socket.setdefaulttimeout(None)
