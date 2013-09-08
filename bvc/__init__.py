@@ -2,6 +2,7 @@
 import futures
 
 import sys
+import socket
 import logging
 from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
@@ -11,6 +12,7 @@ from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class VersionsConfigParser(RawConfigParser):
@@ -56,7 +58,7 @@ class VersionsChecker(object):
 
     def __init__(self, source, includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
-                 threads=10):
+                 timeout=10, threads=10):
         """
         Parses a config file containing pinned versions
         of eggs and check available updates.
@@ -64,6 +66,7 @@ class VersionsChecker(object):
         self.source = source
         self.includes = includes
         self.excludes = excludes
+        self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
         self.source_versions = OrderedDict(
@@ -72,8 +75,9 @@ class VersionsChecker(object):
             self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
-                                     self.threads,
-                                     self.service_url))
+                                     self.service_url,
+                                     self.timeout,
+                                     self.threads))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
@@ -111,7 +115,7 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threads, service_url):
+    def fetch_last_versions(self, packages, service_url, timeout, threads):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
@@ -121,25 +125,27 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, service_url)
+                                         package, service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, service_url))
+                    package, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, service_url):
+    def fetch_last_version(self, package, service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
         package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
+        socket.setdefaulttimeout(timeout)
         client = ServerProxy(service_url)
         results = client.search({'name': package})
+        socket.setdefaulttimeout(None)
         for result in results:
             if result['name'].lower() == package_key:
                 if LooseVersion(result['version']) > LooseVersion(max_version):
@@ -165,61 +171,74 @@ class VersionsChecker(object):
         return updates
 
 
-def cmdline(argv=None):
+def cmdline(argv=sys.argv[1:]):
     parser = ArgumentParser(
         description='Check availables updates from a '
         'version section of a buildout script')
     parser.add_argument(
-        '-s', '--source', dest='source',
+        '-s', '--source', dest='source', default='versions.cfg',
         help='The file where versions are pinned '
-        '(default: versions.cfg)', default='versions.cfg')
+        '(default: versions.cfg)')
     parser.add_argument(
-        '-i', '--include', action='append', dest='includes',
-        help='Include package when checking updates'
-        ' (can be used multiple times)', default=[]),
+        '-i', '--include', action='append', dest='includes', default=[],
+        help='Include package when checking updates '
+        '(can be used multiple times)')
     parser.add_argument(
-        '-e', '--exclude', action='append', dest='excludes',
-        help='Exclude package when checking updates'
-        ' (can be used multiple times)', default=[]),
+        '-e', '--exclude', action='append', dest='excludes', default=[],
+        help='Exclude package when checking updates '
+        '(can be used multiple times)')
     parser.add_argument(
-        '-t', '--threads', dest='threads', type=int,
-        help='Threads used for checking the versions in parallel',
-        default=10)
+        '-w', '--write', action='store_true', dest='write', default=False,
+        help='Write the updates in the source file')
     parser.add_argument(
-        '-w', '--write', action='store_true', dest='write',
-        help='Write the updates in the source file',
-        default=False)
+        '--indent', dest='indentation', type=int, default=24,
+        help='Spaces used when indenting "key = value" (default: 24)')
     parser.add_argument(
-        '--indent', dest='indentation', type=int,
-        help='Spaces used when indenting "key = value" (default: 24)',
-        default=24)
+        '-t', '--threads', dest='threads', type=int, default=10,
+        help='Threads used for checking the versions in parallel')
+    parser.add_argument(
+        '--timeout', dest='timeout', type=int, default=10,
+        help='Timeout for each request (default: 10s)')
     parser.add_argument(
         '--service-url',  dest='service_url',
-        help='The service to use for checking the packages',
-        default='http://pypi.python.org/pypi')
+        default='http://pypi.python.org/pypi',
+        help='The service to use for checking the packages')
     parser.add_argument(
-        '-v', action='count', dest='verbosity',
+        '-v', action='count', dest='verbosity', default=1,
         help='Increase verbosity (specify multiple times for more)')
+    parser.add_argument(
+        '-q', action='count', dest='quietly', default=0,
+        help='Decrease verbosity (specify multiple times for more)')
 
-    options = parser.parse_args(not isinstance(argv, basestring) and
-                                sys.argv[1:] or argv.split())
-    verbosity = options.verbosity
-    if verbosity:
-        console = logging.StreamHandler(sys.stdout)
-        logger.addHandler(console)
-        logger.setLevel(verbosity >= 2 and
-                        logging.DEBUG or logging.INFO)
+    if isinstance(argv, basestring):
+        argv = argv.split()
+    options = parser.parse_args(argv)
+
+    verbose_logs = {0: 100,
+                    1: logging.WARNING,
+                    2: logging.INFO,
+                    3: logging.DEBUG}
+    verbosity = min(3, max(0, options.verbosity - options.quietly))
+    console = logging.StreamHandler(sys.stdout)
+    console.setLevel(verbose_logs[verbosity])
+    logger.addHandler(console)
 
     source = options.source
     try:
         checker = VersionsChecker(
             source, options.includes, options.excludes,
-            options.service_url, options.threads)
+            options.service_url, options.timeout,
+            options.threads)
     except Exception as e:
         sys.exit(e.message or str(e))
 
     if not checker.updates:
         sys.exit(0)
+
+    logger.warning('[versions]')
+    for package, version in checker.updates.items():
+        logger.warning('%s= %s' % (
+            package.ljust(options.indentation), version))
 
     if options.write:
         config = VersionsConfigParser()
@@ -230,13 +249,9 @@ def cmdline(argv=None):
             config.set('versions', package, version)
         config.write(source, options.indentation)
         logger.info('- %s updated.' % source)
-    else:
-        print('[versions]')
-        for package, version in checker.updates.items():
-            print('%s= %s' % (package.ljust(options.indentation), version))
 
     sys.exit(0)
 
 
 if __name__ == '__main__':
-    cmdline()
+    cmdline()  # pragma: no cover

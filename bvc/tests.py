@@ -1,5 +1,7 @@
 """Tests for Buildout version checker"""
+import sys
 from logging import Handler
+from cStringIO import StringIO
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 
@@ -33,7 +35,8 @@ class PypiServerProxy(object):
             {'name': 'Egg', 'version': '0.2'},
             {'name': 'EGG', 'version': '0.3'},
             {'name': 'eggtractor', 'version': '0.42'}
-        ]
+        ],
+        'error-egg': [{}],
     }
 
     def __init__(*ka, **kw):
@@ -116,6 +119,26 @@ class LogsTestCase(TestCase):
                               item)
 
 
+class StdOutTestCase(TestCase):
+    """
+    TestCase for capturing printed output on stdout.
+    """
+    def setUp(self):
+        self.output = StringIO()
+        self.saved_stdout = sys.stdout
+        sys.stdout = self.output
+        super(StdOutTestCase, self).setUp()
+
+    def tearDown(self):
+        sys.stdout = self.saved_stdout
+        #self.output.close()
+        super(StdOutTestCase, self).tearDown()
+
+    def assertStdOut(self, output):
+        self.assertEquals(self.output.getvalue(),
+                          output)
+
+
 class VersionsCheckerTestCase(StubbedServerProxyTestCase):
 
     def setUp(self):
@@ -187,21 +210,21 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
     def test_fetch_last_versions(self):
         self.assertEquals(
             self.checker.fetch_last_versions(
-                ['egg', 'UnknowEgg'], 1, 'service_url'),
+                ['egg', 'UnknowEgg'], 'service_url', 1, 1),
             [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
         results = self.checker.fetch_last_versions(
-            ['egg', 'UnknowEgg'], 2, 'service_url')
+            ['egg', 'UnknowEgg'], 'service_url', 1, 2)
         self.assertEquals(
             dict(results),
             dict([('egg', '0.3'), ('UnknowEgg', '0.0.0')]))
 
     def test_fetch_last_version(self):
         self.assertEquals(
-            self.checker.fetch_last_version('UnknowEgg', 'service_url'),
+            self.checker.fetch_last_version('UnknowEgg', 'service_url', 1),
             ('UnknowEgg', '0.0.0')
         )
         self.assertEquals(
-            self.checker.fetch_last_version('egg', 'service_url'),
+            self.checker.fetch_last_version('egg', 'service_url', 1),
             ('egg', '0.3')
         )
 
@@ -304,6 +327,7 @@ class VersionsConfigParserTestCase(TestCase):
 
 
 class CommandLineTestCase(LogsTestCase,
+                          StdOutTestCase,
                           StubbedServerProxyTestCase):
 
     def test_no_args_no_source(self):
@@ -314,6 +338,143 @@ class CommandLineTestCase(LogsTestCase,
             debug=["'versions' section not found in versions.cfg."],
             info=['- 0 packages need to be checked for updates.',
                   '- 0 package updates found.'])
+        self.assertStdOut('')
+
+    def test_include_no_source(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg.",
+                   '-> Last version of egg is 0.3.',
+                   '=> egg current version (0.0.0) and '
+                   'last version (0.3) are different.'],
+            info=['- 1 packages need to be checked for updates.',
+                  '> Fetching latest datas for egg...',
+                  '- 1 package updates found.'],
+            warning=['[versions]',
+                     'egg                     = 0.3'])
+        self.assertStdOut('[versions]\n'
+                          'egg                     = 0.3\n')
+
+    def test_include_unavailable(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i unavailable')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg.",
+                   '-> Last version of unavailable is 0.0.0.'],
+            info=['- 1 packages need to be checked for updates.',
+                  '> Fetching latest datas for unavailable...',
+                  '- 0 package updates found.'])
+        self.assertStdOut('')
+
+    def test_include_exclude(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i unavailable -e unavailable')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg."],
+            info=['- 0 packages need to be checked for updates.',
+                  '- 0 package updates found.'])
+        self.assertStdOut('')
+
+    def test_write_include_in_blank(self):
+        config_file = NamedTemporaryFile()
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -w -s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[versions]\negg                     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\negg                     = 0.3\n')
+
+    def test_write_in_existing_file_with_exclude(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[buildout]\ndevelop=.\n[versions]\nexcluded=1.0\negg=0.1')
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-e excluded -w -s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=['-> Last version of egg is 0.3.',
+                   '=> egg current version (0.1) and '
+                   'last version (0.3) are different.'],
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 1 packages need to be checked for updates.',
+                  '> Fetching latest datas for egg...',
+                  '- 1 package updates found.',
+                  '- %s updated.' % config_file.name],
+            warning=['[versions]',
+                     'egg                     = 0.3'])
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[buildout]\n'
+            'develop                 = .\n\n'
+            '[versions]\n'
+            'excluded                = 1.0\n'
+            'egg                     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\negg                     = 0.3\n')
+
+    def test_output_default(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('[versions]\n'
+                          'egg                     = 0.3\n')
+
+    def test_output_with_plus_and_minus(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -vvv -qqq')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('[versions]\n'
+                          'egg                     = 0.3\n')
+
+    def test_output_none(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -q')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -qqqqqqqq')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+
+    def test_output_increased(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -v')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut(
+            '- 1 packages need to be checked for updates.\n'
+            '> Fetching latest datas for egg...\n'
+            '- 1 package updates found.\n'
+            '[versions]\n'
+            'egg                     = 0.3\n')
+
+    def test_output_max(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -vvvvvvvvvv')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut(
+            "'versions' section not found in versions.cfg.\n"
+            "- 1 packages need to be checked for updates.\n"
+            "> Fetching latest datas for egg...\n"
+            "-> Last version of egg is 0.3.\n"
+            "=> egg current version (0.0.0) and "
+            "last version (0.3) are different.\n"
+            "- 1 package updates found.\n"
+            "[versions]\n"
+            "egg                     = 0.3\n")
+
+    def test_handle_error(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i error-egg')
+        self.assertEqual(context.exception.code, 'name')
 
 
 loader = TestLoader()
