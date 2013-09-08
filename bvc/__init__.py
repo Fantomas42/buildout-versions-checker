@@ -75,9 +75,9 @@ class VersionsChecker(object):
             self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
-                                     self.threads,
+                                     self.service_url,
                                      self.timeout,
-                                     self.service_url))
+                                     self.threads))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
@@ -115,7 +115,7 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threads, timeout, service_url):
+    def fetch_last_versions(self, packages, service_url, timeout, threads):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
@@ -125,17 +125,17 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, timeout, service_url)
+                                         package, service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, timeout, service_url))
+                    package, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, timeout, service_url):
+    def fetch_last_version(self, package, service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
