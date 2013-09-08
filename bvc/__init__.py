@@ -11,6 +11,7 @@ from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class VersionsConfigParser(RawConfigParser):
@@ -205,14 +206,14 @@ def cmdline(argv=sys.argv[1:]):
         argv = argv.split()
     options = parser.parse_args(argv)
 
-    console = logging.StreamHandler(sys.stdout)
-    logger.addHandler(console)
     verbose_logs = {0: 100,
                     1: logging.WARNING,
                     2: logging.INFO,
                     3: logging.DEBUG}
     verbosity = min(3, max(0, options.verbosity - options.quietly))
-    logger.setLevel(verbose_logs[verbosity])
+    console = logging.StreamHandler(sys.stdout)
+    console.setLevel(verbose_logs[verbosity])
+    logger.addHandler(console)
 
     source = options.source
     try:
