@@ -84,9 +84,8 @@ automaticly find and write the updates. ::
   scripts                 = check-buildout-updates=evolve
   arguments               = '-s buildout.cfg -w'
 
-With this part into your buildout script a new script named ``evolve``,
-will be present into your ``bin`` directory who will check available
-updates for the eggs listed in the ``versions`` section.
+With this part into your buildout script a new script named ``./bin/evolve``,
+will check available updates for the eggs listed in the ``versions`` section.
 
 Requirements
 ------------
