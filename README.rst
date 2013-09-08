@@ -69,6 +69,25 @@ Options
     -v                    Increase verbosity (specify multiple times for more)
     -q                    Decrease verbosity (specify multiple times for more)
 
+Buildout integration
+--------------------
+
+You can easily integrate this script into your buildout script to
+automaticly find and write the updates. ::
+
+  [buildout]
+  parts                   = evolution
+
+  [evolution]
+  recipe                  = zc.recipe.egg
+  eggs                    = bvc
+  scripts                 = check-buildout-updates=evolve
+  arguments               = '-s buildout.cfg -w'
+
+With this part into your buildout script a new script named ``evolve``,
+will be present into your ``bin`` directory who will check available
+updates for the eggs listed in the ``versions`` section.
+
 Requirements
 ------------
 
