@@ -2,6 +2,7 @@
 import futures
 
 import sys
+import socket
 import logging
 from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
@@ -57,7 +58,7 @@ class VersionsChecker(object):
 
     def __init__(self, source, includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
-                 threads=10):
+                 timeout=10, threads=10):
         """
         Parses a config file containing pinned versions
         of eggs and check available updates.
@@ -65,6 +66,7 @@ class VersionsChecker(object):
         self.source = source
         self.includes = includes
         self.excludes = excludes
+        self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
         self.source_versions = OrderedDict(
@@ -73,8 +75,9 @@ class VersionsChecker(object):
             self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
-                                     self.threads,
-                                     self.service_url))
+                                     self.service_url,
+                                     self.timeout,
+                                     self.threads))
         self.updates = OrderedDict(self.find_updates(
             self.versions, self.last_versions))
 
@@ -112,7 +115,7 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, threads, service_url):
+    def fetch_last_versions(self, packages, service_url, timeout, threads):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
@@ -122,25 +125,27 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, service_url)
+                                         package, service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, service_url))
+                    package, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, service_url):
+    def fetch_last_version(self, package, service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
         package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
+        socket.setdefaulttimeout(timeout)
         client = ServerProxy(service_url)
         results = client.search({'name': package})
+        socket.setdefaulttimeout(None)
         for result in results:
             if result['name'].lower() == package_key:
                 if LooseVersion(result['version']) > LooseVersion(max_version):
@@ -183,14 +188,17 @@ def cmdline(argv=sys.argv[1:]):
         help='Exclude package when checking updates '
         '(can be used multiple times)')
     parser.add_argument(
-        '-t', '--threads', dest='threads', type=int, default=10,
-        help='Threads used for checking the versions in parallel')
-    parser.add_argument(
         '-w', '--write', action='store_true', dest='write', default=False,
         help='Write the updates in the source file')
     parser.add_argument(
         '--indent', dest='indentation', type=int, default=24,
         help='Spaces used when indenting "key = value" (default: 24)')
+    parser.add_argument(
+        '-t', '--threads', dest='threads', type=int, default=10,
+        help='Threads used for checking the versions in parallel')
+    parser.add_argument(
+        '--timeout', dest='timeout', type=int, default=10,
+        help='Timeout for each request (default: 10s)')
     parser.add_argument(
         '--service-url',  dest='service_url',
         default='http://pypi.python.org/pypi',
@@ -219,7 +227,8 @@ def cmdline(argv=sys.argv[1:]):
     try:
         checker = VersionsChecker(
             source, options.includes, options.excludes,
-            options.service_url, options.threads)
+            options.service_url, options.timeout,
+            options.threads)
     except Exception as e:
         sys.exit(e.message or str(e))
 

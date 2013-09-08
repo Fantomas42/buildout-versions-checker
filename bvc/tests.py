@@ -35,7 +35,8 @@ class PypiServerProxy(object):
             {'name': 'Egg', 'version': '0.2'},
             {'name': 'EGG', 'version': '0.3'},
             {'name': 'eggtractor', 'version': '0.42'}
-        ]
+        ],
+        'error-egg': [{}],
     }
 
     def __init__(*ka, **kw):
@@ -209,21 +210,21 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
     def test_fetch_last_versions(self):
         self.assertEquals(
             self.checker.fetch_last_versions(
-                ['egg', 'UnknowEgg'], 1, 'service_url'),
+                ['egg', 'UnknowEgg'], 'service_url', 1, 1),
             [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
         results = self.checker.fetch_last_versions(
-            ['egg', 'UnknowEgg'], 2, 'service_url')
+            ['egg', 'UnknowEgg'], 'service_url', 1, 2)
         self.assertEquals(
             dict(results),
             dict([('egg', '0.3'), ('UnknowEgg', '0.0.0')]))
 
     def test_fetch_last_version(self):
         self.assertEquals(
-            self.checker.fetch_last_version('UnknowEgg', 'service_url'),
+            self.checker.fetch_last_version('UnknowEgg', 'service_url', 1),
             ('UnknowEgg', '0.0.0')
         )
         self.assertEquals(
-            self.checker.fetch_last_version('egg', 'service_url'),
+            self.checker.fetch_last_version('egg', 'service_url', 1),
             ('egg', '0.3')
         )
 
@@ -398,6 +399,17 @@ class CommandLineTestCase(LogsTestCase,
         with self.assertRaises(SystemExit) as context:
             cmdline('-e excluded -w -s %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=['-> Last version of egg is 0.3.',
+                   '=> egg current version (0.1) and '
+                   'last version (0.3) are different.'],
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 1 packages need to be checked for updates.',
+                  '> Fetching latest datas for egg...',
+                  '- 1 package updates found.',
+                  '- %s updated.' % config_file.name],
+            warning=['[versions]',
+                     'egg                     = 0.3'])
         config_file.seek(0)
         self.assertEquals(
             ''.join(config_file.readlines()),
@@ -458,6 +470,12 @@ class CommandLineTestCase(LogsTestCase,
             "- 1 package updates found.\n"
             "[versions]\n"
             "egg                     = 0.3\n")
+
+    def test_handle_error(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i error-egg')
+        self.assertEqual(context.exception.code, 'name')
+
 
 loader = TestLoader()
 
