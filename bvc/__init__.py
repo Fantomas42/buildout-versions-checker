@@ -194,15 +194,16 @@ def cmdline(argv=sys.argv[1:]):
         '--indent', dest='indentation', type=int, default=24,
         help='Spaces used when indenting "key = value" (default: 24)')
     parser.add_argument(
-        '-t', '--threads', dest='threads', type=int, default=10,
-        help='Threads used for checking the versions in parallel')
+        '--service-url',  dest='service_url',
+        default='http://pypi.python.org/pypi',
+        help='The service to use for checking the packages '
+        '(default: http://pypi.python.org/pypi)')
     parser.add_argument(
         '--timeout', dest='timeout', type=int, default=10,
         help='Timeout for each request (default: 10s)')
     parser.add_argument(
-        '--service-url',  dest='service_url',
-        default='http://pypi.python.org/pypi',
-        help='The service to use for checking the packages')
+        '-t', '--threads', dest='threads', type=int, default=10,
+        help='Threads used for checking the versions in parallel')
     parser.add_argument(
         '-v', action='count', dest='verbosity', default=1,
         help='Increase verbosity (specify multiple times for more)')
