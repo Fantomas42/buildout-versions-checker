@@ -378,6 +378,37 @@ class CommandLineTestCase(LogsTestCase,
                   '- 0 package updates found.'])
         self.assertStdOut('')
 
+    def test_write_include_in_blank(self):
+        config_file = NamedTemporaryFile()
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg -w -s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[versions]\negg                     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\negg                     = 0.3\n')
+
+    def test_write_in_existing_file_with_exclude(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[buildout]\ndevelop=.\n[versions]\nexcluded=1.0\negg=0.1')
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-e excluded -w -s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        config_file.seek(0)
+        self.assertEquals(
+            ''.join(config_file.readlines()),
+            '[buildout]\n'
+            'develop                 = .\n\n'
+            '[versions]\n'
+            'excluded                = 1.0\n'
+            'egg                     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\negg                     = 0.3\n')
+
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('-i egg')
