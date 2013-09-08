@@ -10,11 +10,11 @@ __license__ = 'BSD License'
 __author__ = 'Fantomas42'
 __email__ = 'fantomas42@gmail.com'
 
-__url__ = 'https://github.com/Fantomas42/bvc'
+__url__ = 'https://github.com/Fantomas42/buildout-versions-checker'
 
 
 setup(
-    name='bvc',
+    name='buildout-versions-checker',
     version=__version__,
     zip_safe=False,
 
@@ -27,12 +27,15 @@ setup(
 
     license=__license__,
     platforms='any',
-    description='Check updates from a Buildout version file',
+    description='Checks egg updates in your Buildout configurations.',
     long_description=open(os.path.join('README.rst')).read(),
     keywords='buildout, versions, updates',
     classifiers=[
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
+        'Framework :: Buildout',
+        'Intended Audience :: Developers'
+        'Programming Language :: Python :: 2.7',
+        'License :: OSI Approved :: BSD License',
+        'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
     install_requires=['futures>=2.1.4'],
     entry_points={
