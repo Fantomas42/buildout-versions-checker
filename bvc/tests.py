@@ -315,6 +315,21 @@ class CommandLineTestCase(LogsTestCase,
             info=['- 0 packages need to be checked for updates.',
                   '- 0 package updates found.'])
 
+    def test_include_no_source(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i egg')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg.",
+                   '-> Last version of egg is 0.3.',
+                   '=> egg current version (0.0.0) and '
+                   'last version (0.3) are different.'],
+            info=['- 1 packages need to be checked for updates.',
+                  '> Fetching latest datas for egg...',
+                  '- 1 package updates found.'],
+            warning=['[versions]',
+                     'egg                     = 0.3'])
+
 
 loader = TestLoader()
 
