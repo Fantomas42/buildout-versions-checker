@@ -35,7 +35,8 @@ class PypiServerProxy(object):
             {'name': 'Egg', 'version': '0.2'},
             {'name': 'EGG', 'version': '0.3'},
             {'name': 'eggtractor', 'version': '0.42'}
-        ]
+        ],
+        'error-egg': [{}],
     }
 
     def __init__(*ka, **kw):
@@ -469,6 +470,12 @@ class CommandLineTestCase(LogsTestCase,
             "- 1 package updates found.\n"
             "[versions]\n"
             "egg                     = 0.3\n")
+
+    def test_handle_error(self):
+        with self.assertRaises(SystemExit) as context:
+            cmdline('-i error-egg')
+        self.assertEqual(context.exception.code, 'name')
+
 
 loader = TestLoader()
 
