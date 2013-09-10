@@ -260,7 +260,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write_section(config_file, 'Section', 24)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section]\n'
             'Option                  = Value\n'
             'Option-void             = \n'
@@ -278,7 +278,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write_section(config_file, 'Section', 12)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section]\n'
             'Option      = Value\n'
             'Option-void = \n'
@@ -297,7 +297,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section 1]\n'
             'Option                  = Value\n'
             'Option-void             = \n'
@@ -318,7 +318,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write(config_file.name, 12)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section 1]\n'
             'Option      = Value\n'
             'Option-void = \n'
