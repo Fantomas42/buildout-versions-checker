@@ -1,9 +1,12 @@
 """Tests for Buildout version checker"""
 import sys
 from logging import Handler
-from cStringIO import StringIO
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
+try:
+    from cStringIO import StringIO
+except ImportError:  # Python 3
+    from io import StringIO
 
 from unittest import TestCase
 from unittest import TestSuite

@@ -1,15 +1,21 @@
 """Buildout version checker"""
 import futures
+from six import string_types
 
 import sys
 import socket
 import logging
-from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
 from collections import OrderedDict
-from ConfigParser import NoSectionError
-from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
+try:
+    from xmlrpclib import ServerProxy
+    from ConfigParser import NoSectionError
+    from ConfigParser import RawConfigParser
+except ImportError:  # Python 3
+    from xmlrpc.client import ServerProxy
+    from configparser import NoSectionError
+    from configparser import RawConfigParser
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -43,7 +49,7 @@ class VersionsConfigParser(RawConfigParser):
         configuration state with a readable indentation.
         """
         with open(source, 'wb') as fd:
-            sections = self._sections.keys()
+            sections = list(self._sections.keys())
             for section in sections[:-1]:
                 self.write_section(fd, section, indentation)
                 fd.write('\n')
@@ -103,11 +109,11 @@ class VersionsChecker(object):
         the default dict of packages with versions.
         """
         versions = source_versions.copy()
-        packages_lower = map(lambda x: x.lower(), versions.keys())
+        packages_lower = [x.lower() for x in versions.keys()]
         for include in includes:
             if include.lower() not in packages_lower:
                 versions[include] = self.default_version
-        excludes_lower = map(lambda x: x.lower(), excludes)
+        excludes_lower = [x.lower() for x in excludes]
         for package in versions.keys():
             if package.lower() in excludes_lower:
                 del versions[package]
@@ -211,7 +217,7 @@ def cmdline(argv=sys.argv[1:]):
         '-q', action='count', dest='quietly', default=0,
         help='Decrease verbosity (specify multiple times for more)')
 
-    if isinstance(argv, basestring):
+    if isinstance(argv, string_types):
         argv = argv.split()
     options = parser.parse_args(argv)
 
