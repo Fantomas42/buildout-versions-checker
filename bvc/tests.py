@@ -12,11 +12,11 @@ from unittest import TestCase
 from unittest import TestSuite
 from unittest import TestLoader
 
-import bvc
-from bvc import logger
-from bvc import cmdline
-from bvc import VersionsChecker
-from bvc import VersionsConfigParser
+from bvc import checker
+from bvc.logger import logger
+from bvc.cmdline import cmdline
+from bvc.checker import VersionsChecker
+from bvc.configparser import VersionsConfigParser
 
 
 class LazyVersionsChecker(VersionsChecker):
@@ -70,14 +70,14 @@ class StubbedServerProxyTestCase(TestCase):
         """
         Replace the ServerProxy class used in bvc.
         """
-        self.original_server_proxy = bvc.ServerProxy
-        bvc.ServerProxy = PypiServerProxy
+        self.original_server_proxy = checker.ServerProxy
+        checker.ServerProxy = PypiServerProxy
 
     def unstub_server_proxy(self):
         """
         Restaure the original ServerProxy class.
         """
-        bvc.ServerProxy = self.original_server_proxy
+        checker.ServerProxy = self.original_server_proxy
 
 
 class DictHandler(Handler):
@@ -147,19 +147,6 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
     def setUp(self):
         self.checker = LazyVersionsChecker()
         super(VersionsCheckerTestCase, self).setUp()
-
-    def stub_server_proxy(self):
-        """
-        Replace the ServerProxy class used in bvc.
-        """
-        self.original_server_proxy = bvc.ServerProxy
-        bvc.ServerProxy = PypiServerProxy
-
-    def unstub_server_proxy(self):
-        """
-        Restaure the original ServerProxy class.
-        """
-        bvc.ServerProxy = self.original_server_proxy
 
     def test_parse_versions(self):
         config_file = NamedTemporaryFile()
