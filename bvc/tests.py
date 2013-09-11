@@ -389,7 +389,7 @@ class CommandLineTestCase(LogsTestCase,
         self.assertEqual(context.exception.code, 0)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[versions]\negg                     = 0.3\n')
         self.assertStdOut(
             '[versions]\negg                     = 0.3\n')
@@ -416,7 +416,7 @@ class CommandLineTestCase(LogsTestCase,
                      'egg                     = 0.3'])
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[buildout]\n'
             'develop                 = .\n\n'
             '[versions]\n'
