@@ -34,10 +34,13 @@ setup(
         'Framework :: Buildout',
         'Intended Audience :: Developers'
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.3',
         'License :: OSI Approved :: BSD License',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
-    install_requires=['futures>=2.1.4'],
+    install_requires=['six>=1.4.1',
+                      'futures>=2.1.4'],
     entry_points={
         'console_scripts': 'check-buildout-updates=bvc:cmdline'},
     test_suite='bvc.tests.test_suite',

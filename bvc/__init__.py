@@ -1,15 +1,21 @@
 """Buildout version checker"""
 import futures
+from six import string_types
 
 import sys
 import socket
 import logging
-from xmlrpclib import ServerProxy
 from argparse import ArgumentParser
 from collections import OrderedDict
-from ConfigParser import NoSectionError
-from ConfigParser import RawConfigParser
 from distutils.version import LooseVersion
+try:
+    from xmlrpclib import ServerProxy
+    from ConfigParser import NoSectionError
+    from ConfigParser import RawConfigParser
+except ImportError:  # Python 3
+    from xmlrpc.client import ServerProxy
+    from configparser import NoSectionError
+    from configparser import RawConfigParser
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -27,15 +33,16 @@ class VersionsConfigParser(RawConfigParser):
         Write a section of an .ini-format
         and all the keys within.
         """
-        fd.write('[%s]\n' % section)
+        string_section = '[%s]\n' % section
         for key, value in self._sections[section].items():
             if key != '__name__':
                 if value is None:
                     value = ''
-                fd.write('%s= %s\n' % (
+                string_section += '%s= %s\n' % (
                     key.ljust(indentation),
                     str(value).replace(
-                        '\n', '\n'.ljust(indentation + 3))))
+                        '\n', '\n'.ljust(indentation + 3)))
+        fd.write(string_section.encode('utf-8'))
 
     def write(self, source, indentation=24):
         """
@@ -43,10 +50,10 @@ class VersionsConfigParser(RawConfigParser):
         configuration state with a readable indentation.
         """
         with open(source, 'wb') as fd:
-            sections = self._sections.keys()
+            sections = list(self._sections.keys())
             for section in sections[:-1]:
                 self.write_section(fd, section, indentation)
-                fd.write('\n')
+                fd.write('\n'.encode('utf-8'))
             self.write_section(fd, sections[-1], indentation)
 
 
@@ -103,11 +110,11 @@ class VersionsChecker(object):
         the default dict of packages with versions.
         """
         versions = source_versions.copy()
-        packages_lower = map(lambda x: x.lower(), versions.keys())
+        packages_lower = [x.lower() for x in versions.keys()]
         for include in includes:
             if include.lower() not in packages_lower:
                 versions[include] = self.default_version
-        excludes_lower = map(lambda x: x.lower(), excludes)
+        excludes_lower = [x.lower() for x in excludes]
         for package in versions.keys():
             if package.lower() in excludes_lower:
                 del versions[package]
@@ -211,7 +218,7 @@ def cmdline(argv=sys.argv[1:]):
         '-q', action='count', dest='quietly', default=0,
         help='Decrease verbosity (specify multiple times for more)')
 
-    if isinstance(argv, basestring):
+    if isinstance(argv, string_types):
         argv = argv.split()
     options = parser.parse_args(argv)
 
@@ -231,7 +238,7 @@ def cmdline(argv=sys.argv[1:]):
             options.service_url, options.timeout,
             options.threads)
     except Exception as e:
-        sys.exit(e.message or str(e))
+        sys.exit(str(e))
 
     if not checker.updates:
         sys.exit(0)

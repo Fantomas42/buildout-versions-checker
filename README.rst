@@ -87,10 +87,16 @@ automaticly find and write the updates. ::
 With this part into your buildout script a new script named ``./bin/evolve``,
 will check available updates for the eggs listed in the ``versions`` section.
 
+Python compatibility
+--------------------
+
+Buildout-versions-checker has been originally developed for Python 2.7, but
+has been ported and tested for Python 3.2 and 3.3.
+
 Requirements
 ------------
 
-* Python2 >= 2.7
+* six >= 1.4.1
 * futures >= 2.1.4
 
 .. _`zc.buildout`: http://www.buildout.org/
