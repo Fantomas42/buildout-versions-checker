@@ -238,7 +238,7 @@ def cmdline(argv=sys.argv[1:]):
             options.service_url, options.timeout,
             options.threads)
     except Exception as e:
-        sys.exit(e.message or str(e))
+        sys.exit(str(e))
 
     if not checker.updates:
         sys.exit(0)

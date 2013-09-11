@@ -478,7 +478,7 @@ class CommandLineTestCase(LogsTestCase,
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('-i error-egg')
-        self.assertEqual(context.exception.code, 'name')
+        self.assertEqual(context.exception.code, "'name'")
 
 
 loader = TestLoader()
