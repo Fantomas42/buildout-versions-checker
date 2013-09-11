@@ -33,15 +33,16 @@ class VersionsConfigParser(RawConfigParser):
         Write a section of an .ini-format
         and all the keys within.
         """
-        fd.write('[%s]\n' % section)
+        string_section = '[%s]\n' % section
         for key, value in self._sections[section].items():
             if key != '__name__':
                 if value is None:
                     value = ''
-                fd.write('%s= %s\n' % (
+                string_section += '%s= %s\n' % (
                     key.ljust(indentation),
                     str(value).replace(
-                        '\n', '\n'.ljust(indentation + 3))))
+                        '\n', '\n'.ljust(indentation + 3)))
+        fd.write(string_section.encode('utf-8'))
 
     def write(self, source, indentation=24):
         """
@@ -52,7 +53,7 @@ class VersionsConfigParser(RawConfigParser):
             sections = list(self._sections.keys())
             for section in sections[:-1]:
                 self.write_section(fd, section, indentation)
-                fd.write('\n')
+                fd.write('\n'.encode('utf-8'))
             self.write_section(fd, sections[-1], indentation)
 
 

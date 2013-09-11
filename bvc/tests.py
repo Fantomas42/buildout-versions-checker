@@ -163,17 +163,17 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
 
     def test_parse_versions(self):
         config_file = NamedTemporaryFile()
-        config_file.write('[sections]\nKey=Value\n')
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         self.assertEquals(self.checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
-        config_file.write('[VERSIONS]\negg=0.1\nEgg = 0.2')
+        config_file.write('[VERSIONS]\negg=0.1\nEgg = 0.2'.encode('utf-8'))
         config_file.seek(0)
         self.assertEquals(self.checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
-        config_file.write('[versions]\negg=0.1\nEgg = 0.2')
+        config_file.write('[versions]\negg=0.1\nEgg = 0.2'.encode('utf-8'))
         config_file.seek(0)
         self.assertEquals(self.checker.parse_versions(config_file.name),
                           [('egg', '0.1'), ('Egg', '0.2')])
@@ -242,7 +242,7 @@ class VersionsConfigParserTestCase(TestCase):
 
     def test_parse_case_insensitive(self):
         config_file = NamedTemporaryFile()
-        config_file.write('[Section]\nKEY=VALUE\nKey=Value\n')
+        config_file.write('[Section]\nKEY=VALUE\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         config_parser = VersionsConfigParser()
         config_parser.readfp(config_file)
@@ -397,7 +397,8 @@ class CommandLineTestCase(LogsTestCase,
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()
         config_file.write(
-            '[buildout]\ndevelop=.\n[versions]\nexcluded=1.0\negg=0.1')
+            '[buildout]\ndevelop=.\n'
+            '[versions]\nexcluded=1.0\negg=0.1'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
             cmdline('-e excluded -w -s %s' % config_file.name)
