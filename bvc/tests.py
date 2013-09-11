@@ -245,7 +245,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_file.write('[Section]\nKEY=VALUE\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         config_parser = VersionsConfigParser()
-        config_parser.readfp(config_file)
+        config_parser.read(config_file.name)
         self.assertEquals(config_parser.sections(), ['Section'])
         self.assertEquals(config_parser.options('Section'), ['KEY', 'Key'])
         config_file.close()
