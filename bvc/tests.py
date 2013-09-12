@@ -1,19 +1,22 @@
 """Tests for Buildout version checker"""
 import sys
 from logging import Handler
-from cStringIO import StringIO
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
+try:
+    from cStringIO import StringIO
+except ImportError:  # Python 3
+    from io import StringIO
 
 from unittest import TestCase
 from unittest import TestSuite
 from unittest import TestLoader
 
-import bvc
-from bvc import logger
-from bvc import cmdline
-from bvc import VersionsChecker
-from bvc import VersionsConfigParser
+from bvc import checker
+from bvc.logger import logger
+from bvc.cmdline import cmdline
+from bvc.checker import VersionsChecker
+from bvc.configparser import VersionsConfigParser
 
 
 class LazyVersionsChecker(VersionsChecker):
@@ -67,14 +70,14 @@ class StubbedServerProxyTestCase(TestCase):
         """
         Replace the ServerProxy class used in bvc.
         """
-        self.original_server_proxy = bvc.ServerProxy
-        bvc.ServerProxy = PypiServerProxy
+        self.original_server_proxy = checker.ServerProxy
+        checker.ServerProxy = PypiServerProxy
 
     def unstub_server_proxy(self):
         """
         Restaure the original ServerProxy class.
         """
-        bvc.ServerProxy = self.original_server_proxy
+        checker.ServerProxy = self.original_server_proxy
 
 
 class DictHandler(Handler):
@@ -145,32 +148,19 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
         self.checker = LazyVersionsChecker()
         super(VersionsCheckerTestCase, self).setUp()
 
-    def stub_server_proxy(self):
-        """
-        Replace the ServerProxy class used in bvc.
-        """
-        self.original_server_proxy = bvc.ServerProxy
-        bvc.ServerProxy = PypiServerProxy
-
-    def unstub_server_proxy(self):
-        """
-        Restaure the original ServerProxy class.
-        """
-        bvc.ServerProxy = self.original_server_proxy
-
     def test_parse_versions(self):
         config_file = NamedTemporaryFile()
-        config_file.write('[sections]\nKey=Value\n')
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         self.assertEquals(self.checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
-        config_file.write('[VERSIONS]\negg=0.1\nEgg = 0.2')
+        config_file.write('[VERSIONS]\negg=0.1\nEgg = 0.2'.encode('utf-8'))
         config_file.seek(0)
         self.assertEquals(self.checker.parse_versions(config_file.name),
                           [])
         config_file.seek(0)
-        config_file.write('[versions]\negg=0.1\nEgg = 0.2')
+        config_file.write('[versions]\negg=0.1\nEgg = 0.2'.encode('utf-8'))
         config_file.seek(0)
         self.assertEquals(self.checker.parse_versions(config_file.name),
                           [('egg', '0.1'), ('Egg', '0.2')])
@@ -239,10 +229,10 @@ class VersionsConfigParserTestCase(TestCase):
 
     def test_parse_case_insensitive(self):
         config_file = NamedTemporaryFile()
-        config_file.write('[Section]\nKEY=VALUE\nKey=Value\n')
+        config_file.write('[Section]\nKEY=VALUE\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         config_parser = VersionsConfigParser()
-        config_parser.readfp(config_file)
+        config_parser.read(config_file.name)
         self.assertEquals(config_parser.sections(), ['Section'])
         self.assertEquals(config_parser.options('Section'), ['KEY', 'Key'])
         config_file.close()
@@ -257,7 +247,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write_section(config_file, 'Section', 24)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section]\n'
             'Option                  = Value\n'
             'Option-void             = \n'
@@ -275,7 +265,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write_section(config_file, 'Section', 12)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section]\n'
             'Option      = Value\n'
             'Option-void = \n'
@@ -294,7 +284,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section 1]\n'
             'Option                  = Value\n'
             'Option-void             = \n'
@@ -315,7 +305,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.write(config_file.name, 12)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[Section 1]\n'
             'Option      = Value\n'
             'Option-void = \n'
@@ -386,7 +376,7 @@ class CommandLineTestCase(LogsTestCase,
         self.assertEqual(context.exception.code, 0)
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[versions]\negg                     = 0.3\n')
         self.assertStdOut(
             '[versions]\negg                     = 0.3\n')
@@ -394,7 +384,8 @@ class CommandLineTestCase(LogsTestCase,
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()
         config_file.write(
-            '[buildout]\ndevelop=.\n[versions]\nexcluded=1.0\negg=0.1')
+            '[buildout]\ndevelop=.\n'
+            '[versions]\nexcluded=1.0\negg=0.1'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
             cmdline('-e excluded -w -s %s' % config_file.name)
@@ -412,7 +403,7 @@ class CommandLineTestCase(LogsTestCase,
                      'egg                     = 0.3'])
         config_file.seek(0)
         self.assertEquals(
-            ''.join(config_file.readlines()),
+            config_file.read().decode('utf-8'),
             '[buildout]\n'
             'develop                 = .\n\n'
             '[versions]\n'
@@ -474,7 +465,7 @@ class CommandLineTestCase(LogsTestCase,
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('-i error-egg')
-        self.assertEqual(context.exception.code, 'name')
+        self.assertEqual(context.exception.code, "'name'")
 
 
 loader = TestLoader()

@@ -7,7 +7,7 @@ lib/
 dist/
 build/
 local/
-bvc.egg-info/
+buildout_versions_checker.egg-info/
 .installed.cfg
 .coverage
 TODO

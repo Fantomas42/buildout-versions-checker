@@ -41,8 +41,9 @@ Options
 ::
 
   usage: check-buildout-updates [-h] [-s SOURCE] [-i INCLUDES] [-e EXCLUDES]
-                                [-t THREADS] [-w] [--indent INDENTATION]
-                                [--service-url SERVICE_URL] [-v]
+                                [-w] [--indent INDENTATION]
+                                [--service-url SERVICE_URL] [--timeout TIMEOUT]
+                                [-t THREADS] [-v] [-q]
 
   Check availables updates from a version section of a buildout script
 
@@ -57,18 +58,45 @@ Options
     -e EXCLUDES, --exclude EXCLUDES
                           Exclude package when checking updates (can be used
                           multiple times)
-    -t THREADS, --threads THREADS
-                          Threads used for checking the versions in parallel
     -w, --write           Write the updates in the source file
     --indent INDENTATION  Spaces used when indenting "key = value" (default: 24)
     --service-url SERVICE_URL
-                          The service to use for checking the packages
+                          The service to use for checking the packages (default:
+                          http://pypi.python.org/pypi)
+    --timeout TIMEOUT     Timeout for each request (default: 10s)
+    -t THREADS, --threads THREADS
+                          Threads used for checking the versions in parallel
     -v                    Increase verbosity (specify multiple times for more)
+    -q                    Decrease verbosity (specify multiple times for more)
+
+Buildout integration
+--------------------
+
+You can easily integrate this script into your buildout script to
+automaticly find and write the updates. ::
+
+  [buildout]
+  parts                   = evolution
+
+  [evolution]
+  recipe                  = zc.recipe.egg
+  eggs                    = buildout-versions-checker
+  scripts                 = check-buildout-updates=evolve
+  arguments               = '-s buildout.cfg -w'
+
+With this part into your buildout script a new script named ``./bin/evolve``,
+will check available updates for the eggs listed in the ``versions`` section.
+
+Python compatibility
+--------------------
+
+Buildout-versions-checker has been originally developed for Python 2.7, but
+has been ported and tested for Python 3.2 and 3.3.
 
 Requirements
 ------------
 
-* Python2 >= 2.7
+* six >= 1.4.1
 * futures >= 2.1.4
 
 .. _`zc.buildout`: http://www.buildout.org/
