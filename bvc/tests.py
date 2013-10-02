@@ -286,12 +286,12 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section 1]\n'
-            'Option                  = Value\n'
-            'Option-void             = \n'
+            'Option                          = Value\n'
+            'Option-void                     = \n'
             '\n'
             '[Section 2]\n'
-            'Option-multiline        = Value1\n'
-            '                          Value2\n')
+            'Option-multiline                = Value1\n'
+            '                                  Value2\n')
         config_file.close()
 
     def test_write_low_indentation(self):
@@ -343,9 +343,10 @@ class CommandLineTestCase(LogsTestCase,
                   '> Fetching latest datas for egg...',
                   '- 1 package updates found.'],
             warning=['[versions]',
-                     'egg                     = 0.3'])
-        self.assertStdOut('[versions]\n'
-                          'egg                     = 0.3\n')
+                     'egg                             = 0.3'])
+        self.assertStdOut(
+            '[versions]\n'
+            'egg                             = 0.3\n')
 
     def test_include_unavailable(self):
         with self.assertRaises(SystemExit) as context:
@@ -377,9 +378,9 @@ class CommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\negg                     = 0.3\n')
+            '[versions]\negg                             = 0.3\n')
         self.assertStdOut(
-            '[versions]\negg                     = 0.3\n')
+            '[versions]\negg                             = 0.3\n')
 
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()
@@ -400,31 +401,34 @@ class CommandLineTestCase(LogsTestCase,
                   '- 1 package updates found.',
                   '- %s updated.' % config_file.name],
             warning=['[versions]',
-                     'egg                     = 0.3'])
+                     'egg                             = 0.3'])
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[buildout]\n'
-            'develop                 = .\n\n'
+            'develop                         = .\n\n'
             '[versions]\n'
-            'excluded                = 1.0\n'
-            'egg                     = 0.3\n')
+            'excluded                        = 1.0\n'
+            'egg                             = 0.3\n')
         self.assertStdOut(
-            '[versions]\negg                     = 0.3\n')
+            '[versions]\n'
+            'egg                             = 0.3\n')
 
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
-        self.assertStdOut('[versions]\n'
-                          'egg                     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\n'
+            'egg                             = 0.3\n')
 
     def test_output_with_plus_and_minus(self):
         with self.assertRaises(SystemExit) as context:
             cmdline('-i egg -vvv -qqq')
         self.assertEqual(context.exception.code, 0)
-        self.assertStdOut('[versions]\n'
-                          'egg                     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\n'
+            'egg                             = 0.3\n')
 
     def test_output_none(self):
         with self.assertRaises(SystemExit) as context:
@@ -445,7 +449,7 @@ class CommandLineTestCase(LogsTestCase,
             '> Fetching latest datas for egg...\n'
             '- 1 package updates found.\n'
             '[versions]\n'
-            'egg                     = 0.3\n')
+            'egg                             = 0.3\n')
 
     def test_output_max(self):
         with self.assertRaises(SystemExit) as context:
@@ -460,7 +464,7 @@ class CommandLineTestCase(LogsTestCase,
             "last version (0.3) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg                     = 0.3\n")
+            "egg                             = 0.3\n")
 
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
