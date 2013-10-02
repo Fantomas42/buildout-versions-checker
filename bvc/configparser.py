@@ -28,7 +28,7 @@ class VersionsConfigParser(RawConfigParser):
                         '\n', '\n'.ljust(indentation + 3)))
         fd.write(string_section.encode('utf-8'))
 
-    def write(self, source, indentation=24):
+    def write(self, source, indentation=32):
         """
         Write an .ini-format representation of the
         configuration state with a readable indentation.

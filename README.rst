@@ -18,20 +18,20 @@ Here an example of a version file: ::
 
   $ cat versions.cfg
   [versions]
-  Pillow                  = 2.0.0
-  pytz                    = 2012j
-  South                   = 0.8.1
-  django                  = 1.5
-  django-tagging          = 0.3.1
+  Pillow                          = 2.0.0
+  pytz                            = 2012j
+  South                           = 0.8.1
+  django                          = 1.5
+  django-tagging                  = 0.3.1
 
 Now let's execute the ``check-buildout-updates`` script: ::
 
   $ ./check-buildout-updates
   [versions]
-  Pillow                  = 2.1.0
-  pytz                    = 2013b
-  South                   = 0.8.2
-  django                  = 1.5.2
+  Pillow                          = 2.1.0
+  pytz                            = 2013b
+  South                           = 0.8.2
+  django                          = 1.5.2
 
 You can now update the ``versions.cfg`` file accordingly to your needs.
 
@@ -59,7 +59,7 @@ Options
                           Exclude package when checking updates (can be used
                           multiple times)
     -w, --write           Write the updates in the source file
-    --indent INDENTATION  Spaces used when indenting "key = value" (default: 24)
+    --indent INDENTATION  Spaces used when indenting "key = value" (default: 32)
     --service-url SERVICE_URL
                           The service to use for checking the packages (default:
                           http://pypi.python.org/pypi)
