@@ -4,7 +4,7 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-__version__ = '1.0'
+__version__ = '1.1'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
@@ -32,15 +32,15 @@ setup(
     keywords='buildout, versions, updates',
     classifiers=[
         'Framework :: Buildout',
-        'Intended Audience :: Developers'
+        'Intended Audience :: Developers',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'License :: OSI Approved :: BSD License',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
-    install_requires=['six>=1.4.1',
-                      'futures>=2.1.4'],
+    install_requires=['six',
+                      'futures'],
     entry_points={
         'console_scripts': 'check-buildout-updates=bvc:cmdline'},
     test_suite='bvc.tests.test_suite',

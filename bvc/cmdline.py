@@ -30,8 +30,8 @@ def cmdline(argv=sys.argv[1:]):
         '-w', '--write', action='store_true', dest='write', default=False,
         help='Write the updates in the source file')
     parser.add_argument(
-        '--indent', dest='indentation', type=int, default=24,
-        help='Spaces used when indenting "key = value" (default: 24)')
+        '--indent', dest='indentation', type=int, default=32,
+        help='Spaces used when indenting "key = value" (default: 32)')
     parser.add_argument(
         '--service-url',  dest='service_url',
         default='http://pypi.python.org/pypi',
