@@ -39,13 +39,17 @@ def cmdline(argv=sys.argv[1:]):
     logger.addHandler(console)
 
     if not options.sources:
-        logger.info('No buildout files to (re)indent')
+        logger.warning('No files to (re)indent')
         sys.exit(0)
 
     for source in options.sources:
         config = VersionsConfigParser()
-        config.read(source)
-        config.write(source, options.indentation)
-        logger.info('- %s (re)indented.' % source)
+        config_readed = config.read(source)
+        if config_readed:
+            config.write(source, options.indentation)
+            logger.warning('- %s (re)indented at %s spaces.' % (
+                source, options.indentation))
+        else:
+            logger.warning('- %s cannot be read.' % source)
 
     sys.exit(0)

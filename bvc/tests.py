@@ -15,6 +15,7 @@ from unittest import TestLoader
 from bvc import checker
 from bvc.logger import logger
 from bvc.checker import VersionsChecker
+from bvc.scripts import indent_buildout
 from bvc.scripts import check_buildout_updates
 from bvc.configparser import VersionsConfigParser
 
@@ -316,6 +317,67 @@ class VersionsConfigParserTestCase(TestCase):
         config_file.close()
 
 
+class IndentCommandLineTestCase(LogsTestCase,
+                                StdOutTestCase):
+
+    def test_simple(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['- %s (re)indented at 32 spaces.' % config_file.name])
+        self.assertStdOut(
+            '- %s (re)indented at 32 spaces.\n' % config_file.name)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[sections]\n'
+            'Key                             = Value\n')
+        config_file.close()
+
+    def test_invalid_source(self):
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s invalid.cfg')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(warning=['- invalid.cfg cannot be read.'])
+        self.assertStdOut('- invalid.cfg cannot be read.\n')
+
+    def test_multiple_sources(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s %s -s invalid.cfg' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['- %s (re)indented at 32 spaces.' % config_file.name,
+                     '- invalid.cfg cannot be read.'])
+        self.assertStdOut(
+            '- %s (re)indented at 32 spaces.\n'
+            '- invalid.cfg cannot be read.\n' % config_file.name)
+
+    def test_no_source(self):
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['No files to (re)indent'])
+        self.assertStdOut(
+            'No files to (re)indent\n')
+
+    def test_output_none(self):
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s invalid.cfg -q')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s source.cfg -qqqqqqq')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+
+
 class CheckUpdatesCommandLineTestCase(LogsTestCase,
                                       StdOutTestCase,
                                       StubbedServerProxyTestCase):
@@ -479,6 +541,7 @@ loader = TestLoader()
 test_suite = TestSuite(
     [loader.loadTestsFromTestCase(VersionsCheckerTestCase),
      loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
+     loader.loadTestsFromTestCase(IndentCommandLineTestCase),
      loader.loadTestsFromTestCase(CheckUpdatesCommandLineTestCase)
      ]
 )
