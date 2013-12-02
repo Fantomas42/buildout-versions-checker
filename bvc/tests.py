@@ -14,9 +14,9 @@ from unittest import TestLoader
 
 from bvc import checker
 from bvc.logger import logger
-from bvc.cmdline import cmdline
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
+from bvc.scripts.check_buildout_updates import cmdline
 
 
 class LazyVersionsChecker(VersionsChecker):

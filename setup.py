@@ -42,6 +42,7 @@ setup(
     install_requires=['six',
                       'futures'],
     entry_points={
-        'console_scripts': 'check-buildout-updates=bvc:cmdline'},
+        'console_scripts':
+        'check-buildout-updates=bvc.scripts.check_buildout_updates:cmdline'},
     test_suite='bvc.tests.test_suite',
 )
