@@ -14,8 +14,9 @@ from unittest import TestLoader
 
 from bvc import checker
 from bvc.logger import logger
-from bvc.cmdline import cmdline
 from bvc.checker import VersionsChecker
+from bvc.scripts import indent_buildout
+from bvc.scripts import check_buildout_updates
 from bvc.configparser import VersionsConfigParser
 
 
@@ -316,13 +317,74 @@ class VersionsConfigParserTestCase(TestCase):
         config_file.close()
 
 
-class CommandLineTestCase(LogsTestCase,
-                          StdOutTestCase,
-                          StubbedServerProxyTestCase):
+class IndentCommandLineTestCase(LogsTestCase,
+                                StdOutTestCase):
+
+    def test_simple(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['- %s (re)indented at 32 spaces.' % config_file.name])
+        self.assertStdOut(
+            '- %s (re)indented at 32 spaces.\n' % config_file.name)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[sections]\n'
+            'Key                             = Value\n')
+        config_file.close()
+
+    def test_invalid_source(self):
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s invalid.cfg')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(warning=['- invalid.cfg cannot be read.'])
+        self.assertStdOut('- invalid.cfg cannot be read.\n')
+
+    def test_multiple_sources(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s %s -s invalid.cfg' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['- %s (re)indented at 32 spaces.' % config_file.name,
+                     '- invalid.cfg cannot be read.'])
+        self.assertStdOut(
+            '- %s (re)indented at 32 spaces.\n'
+            '- invalid.cfg cannot be read.\n' % config_file.name)
+
+    def test_no_source(self):
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['No files to (re)indent'])
+        self.assertStdOut(
+            'No files to (re)indent\n')
+
+    def test_output_none(self):
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s invalid.cfg -q')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('-s source.cfg -qqqqqqq')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+
+
+class CheckUpdatesCommandLineTestCase(LogsTestCase,
+                                      StdOutTestCase,
+                                      StubbedServerProxyTestCase):
 
     def test_no_args_no_source(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('')
+            check_buildout_updates.cmdline('')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg."],
@@ -332,7 +394,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_include_no_source(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg')
+            check_buildout_updates.cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg.",
@@ -350,7 +412,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_include_unavailable(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i unavailable')
+            check_buildout_updates.cmdline('-i unavailable')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg.",
@@ -362,7 +424,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_include_exclude(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i unavailable -e unavailable')
+            check_buildout_updates.cmdline('-i unavailable -e unavailable')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg."],
@@ -373,7 +435,8 @@ class CommandLineTestCase(LogsTestCase,
     def test_write_include_in_blank(self):
         config_file = NamedTemporaryFile()
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -w -s %s' % config_file.name)
+            check_buildout_updates.cmdline(
+                '-i egg -w -s %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         config_file.seek(0)
         self.assertEquals(
@@ -389,7 +452,8 @@ class CommandLineTestCase(LogsTestCase,
             '[versions]\nexcluded=1.0\negg=0.1'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            cmdline('-e excluded -w -s %s' % config_file.name)
+            check_buildout_updates.cmdline(
+                '-e excluded -w -s %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=['-> Last version of egg is 0.3.',
@@ -416,7 +480,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg')
+            check_buildout_updates.cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '[versions]\n'
@@ -424,7 +488,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_with_plus_and_minus(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -vvv -qqq')
+            check_buildout_updates.cmdline('-i egg -vvv -qqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '[versions]\n'
@@ -432,17 +496,17 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_none(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -q')
+            check_buildout_updates.cmdline('-i egg -q')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -qqqqqqqq')
+            check_buildout_updates.cmdline('-i egg -qqqqqqqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
 
     def test_output_increased(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -v')
+            check_buildout_updates.cmdline('-i egg -v')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '- 1 packages need to be checked for updates.\n'
@@ -453,7 +517,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_max(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -vvvvvvvvvv')
+            check_buildout_updates.cmdline('-i egg -vvvvvvvvvv')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             "'versions' section not found in versions.cfg.\n"
@@ -468,7 +532,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i error-egg')
+            check_buildout_updates.cmdline('-i error-egg')
         self.assertEqual(context.exception.code, "'name'")
 
 
@@ -477,6 +541,7 @@ loader = TestLoader()
 test_suite = TestSuite(
     [loader.loadTestsFromTestCase(VersionsCheckerTestCase),
      loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
-     loader.loadTestsFromTestCase(CommandLineTestCase)
+     loader.loadTestsFromTestCase(IndentCommandLineTestCase),
+     loader.loadTestsFromTestCase(CheckUpdatesCommandLineTestCase)
      ]
 )
