@@ -14,7 +14,7 @@ def cmdline(argv=sys.argv[1:]):
         description='(Re)indent buildout related files')
     parser.add_argument(
         '-s', '--source', action='append', dest='sources',
-        default=['buildout.cfg', 'versions.cfg'],
+        default=['buildout.cfg'],
         help='The buildout files to (re)indent')
     parser.add_argument(
         '--indent', dest='indentation', type=int, default=32,
