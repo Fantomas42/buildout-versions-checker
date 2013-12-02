@@ -15,8 +15,8 @@ from unittest import TestLoader
 from bvc import checker
 from bvc.logger import logger
 from bvc.checker import VersionsChecker
+from bvc.scripts import check_buildout_updates
 from bvc.configparser import VersionsConfigParser
-from bvc.scripts.check_buildout_updates import cmdline
 
 
 class LazyVersionsChecker(VersionsChecker):
@@ -316,13 +316,13 @@ class VersionsConfigParserTestCase(TestCase):
         config_file.close()
 
 
-class CommandLineTestCase(LogsTestCase,
-                          StdOutTestCase,
-                          StubbedServerProxyTestCase):
+class CheckUpdatesCommandLineTestCase(LogsTestCase,
+                                      StdOutTestCase,
+                                      StubbedServerProxyTestCase):
 
     def test_no_args_no_source(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('')
+            check_buildout_updates.cmdline('')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg."],
@@ -332,7 +332,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_include_no_source(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg')
+            check_buildout_updates.cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg.",
@@ -350,7 +350,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_include_unavailable(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i unavailable')
+            check_buildout_updates.cmdline('-i unavailable')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg.",
@@ -362,7 +362,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_include_exclude(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i unavailable -e unavailable')
+            check_buildout_updates.cmdline('-i unavailable -e unavailable')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg."],
@@ -373,7 +373,8 @@ class CommandLineTestCase(LogsTestCase,
     def test_write_include_in_blank(self):
         config_file = NamedTemporaryFile()
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -w -s %s' % config_file.name)
+            check_buildout_updates.cmdline(
+                '-i egg -w -s %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         config_file.seek(0)
         self.assertEquals(
@@ -389,7 +390,8 @@ class CommandLineTestCase(LogsTestCase,
             '[versions]\nexcluded=1.0\negg=0.1'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            cmdline('-e excluded -w -s %s' % config_file.name)
+            check_buildout_updates.cmdline(
+                '-e excluded -w -s %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=['-> Last version of egg is 0.3.',
@@ -416,7 +418,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg')
+            check_buildout_updates.cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '[versions]\n'
@@ -424,7 +426,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_with_plus_and_minus(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -vvv -qqq')
+            check_buildout_updates.cmdline('-i egg -vvv -qqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '[versions]\n'
@@ -432,17 +434,17 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_none(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -q')
+            check_buildout_updates.cmdline('-i egg -q')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -qqqqqqqq')
+            check_buildout_updates.cmdline('-i egg -qqqqqqqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
 
     def test_output_increased(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -v')
+            check_buildout_updates.cmdline('-i egg -v')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '- 1 packages need to be checked for updates.\n'
@@ -453,7 +455,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_output_max(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i egg -vvvvvvvvvv')
+            check_buildout_updates.cmdline('-i egg -vvvvvvvvvv')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             "'versions' section not found in versions.cfg.\n"
@@ -468,7 +470,7 @@ class CommandLineTestCase(LogsTestCase,
 
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
-            cmdline('-i error-egg')
+            check_buildout_updates.cmdline('-i error-egg')
         self.assertEqual(context.exception.code, "'name'")
 
 
@@ -477,6 +479,6 @@ loader = TestLoader()
 test_suite = TestSuite(
     [loader.loadTestsFromTestCase(VersionsCheckerTestCase),
      loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
-     loader.loadTestsFromTestCase(CommandLineTestCase)
+     loader.loadTestsFromTestCase(CheckUpdatesCommandLineTestCase)
      ]
 )
