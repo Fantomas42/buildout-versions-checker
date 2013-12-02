@@ -4,7 +4,7 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-__version__ = '1.1'
+__version__ = '1.2'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
@@ -42,6 +42,10 @@ setup(
     install_requires=['six',
                       'futures'],
     entry_points={
-        'console_scripts': 'check-buildout-updates=bvc:cmdline'},
+        'console_scripts': [
+            'indent-buildout=bvc.scripts.indent_buildout:cmdline',
+            'check-buildout-updates=bvc.scripts.check_buildout_updates:cmdline'
+        ]
+    },
     test_suite='bvc.tests.test_suite',
 )

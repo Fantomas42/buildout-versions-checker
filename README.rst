@@ -87,6 +87,16 @@ automaticly find and write the updates. ::
 With this part into your buildout script a new script named ``./bin/evolve``,
 will check available updates for the eggs listed in the ``versions`` section.
 
+Extra
+-----
+
+Buildout-versions-checker provides an extra script named
+``indent-buildout``, designed for just (re)indent your buildout files.
+Because the buildout files are sometimes mixed with spaces and tabulations
+which may affect viewing and editing. ::
+
+  $ ./indent-buildout -s buildout.cfg
+
 Python compatibility
 --------------------
 
