@@ -281,7 +281,9 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.add_section('Section 2')
         config_parser.set('Section 1', 'Option', 'Value')
         config_parser.set('Section 1', 'Option-void', None)
+        config_parser.set('Section 1', 'Option-add+', 'Value added')
         config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
+        config_parser.set('Section 2', '<', 'Value1\nValue2')
         config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
@@ -289,9 +291,12 @@ class VersionsConfigParserTestCase(TestCase):
             '[Section 1]\n'
             'Option                          = Value\n'
             'Option-void                     = \n'
+            'Option-add                     += Value added\n'
             '\n'
             '[Section 2]\n'
             'Option-multiline                = Value1\n'
+            '                                  Value2\n'
+            '                               <= Value1\n'
             '                                  Value2\n')
         config_file.close()
 
@@ -314,6 +319,106 @@ class VersionsConfigParserTestCase(TestCase):
             '[Section 2]\n'
             'Option-multiline= Value1\n'
             '              Value2\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_operators(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\nAd+=dition\nSub-=straction'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Ad                     += dition\n'
+            'Sub                    -= straction\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_operators_offset(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\nAd  +=dition\nSub - = straction'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Ad                     += dition\n'
+            'Sub                    -= straction\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_operators_multilines(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\nAdd+=Multi\n  Lines'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Add                    += Multi\n'
+            '                          Lines\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_macros(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\n<=Macro\n  Template'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            '                       <= Macro\n'
+            '                          Template\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_macros_offset(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\n<  = Macro\n  Template'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            '                       <= Macro\n'
+            '                          Template\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_conditional_sections(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[Section:Condition]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section:Condition]\n'
+            'Key                     = Value\n')
         config_file.close()
 
 
