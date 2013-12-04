@@ -291,7 +291,7 @@ class VersionsConfigParserTestCase(TestCase):
             '[Section 1]\n'
             'Option                          = Value\n'
             'Option-void                     = \n'
-            'Option-add                     += Value added'
+            'Option-add                     += Value added\n'
             '\n'
             '[Section 2]\n'
             'Option-multiline                = Value1\n'
@@ -392,7 +392,7 @@ class VersionsConfigParserTestCase(TestCase):
     def test_parse_and_write_buildout_macros_offset(self):
         config_file = NamedTemporaryFile()
         config_file.write(
-            '[Section]\n   <  = Macro\n  Template'.encode('utf-8'))
+            '[Section]\n<  = Macro\n  Template'.encode('utf-8'))
         config_file.seek(0)
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
