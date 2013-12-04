@@ -82,10 +82,11 @@ automaticly find and write the updates. ::
   recipe                  = zc.recipe.egg
   eggs                    = buildout-versions-checker
   scripts                 = check-buildout-updates=evolve
-  arguments               = '-s buildout.cfg -w'
+  arguments               = '-s versions.cfg -w'
 
-With this part into your buildout script a new script named ``./bin/evolve``,
-will check available updates for the eggs listed in the ``versions`` section.
+With this part into your buildout, a new script named ``./bin/evolve`` will
+be created. It will check for the available updates of the eggs listed in the
+``versions`` section of the ``versions.cfg`` file, then write the updates found.
 
 Extra
 -----
