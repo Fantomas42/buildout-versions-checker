@@ -319,8 +319,41 @@ class VersionsConfigParserTestCase(TestCase):
     def test_parse_and_write_buildout_operators(self):
         config_file = NamedTemporaryFile()
         config_file.write(
-            '[Section]\n<=Macro\n  Template\nAdd+=dition\n'
-            'Sub-=straction\nSubml-=Multi\n  Lines'.encode('utf-8'))
+            '[Section]\nAdd+=dition\nSub-=straction'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Add                    += dition\n'
+            'Sub                    -= straction\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_operators_multilines(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\nAdd+=Multi\n  Lines'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Add                    += Multi\n'
+            '                          Lines\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_macros(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\n<=Macro\n  Template'.encode('utf-8'))
         config_file.seek(0)
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
@@ -331,11 +364,7 @@ class VersionsConfigParserTestCase(TestCase):
             config_file.read().decode('utf-8'),
             '[Section]\n'
             '                       <= Macro\n'
-            '                          Template\n'
-            'Add                    += dition\n'
-            'Sub                    -= straction\n'
-            'Subml                  -= Multi\n'
-            '                          Lines\n')
+            '                          Template\n')
         config_file.close()
 
     def test_parse_and_write_buildout_conditional_sections(self):
