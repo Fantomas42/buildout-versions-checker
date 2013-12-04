@@ -316,6 +316,43 @@ class VersionsConfigParserTestCase(TestCase):
             '              Value2\n')
         config_file.close()
 
+    def test_parse_and_write_buildout_operators(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\n<=Macro\n  Template\nAdd+=dition\n'
+            'Sub-=straction\nSubml-=Multi\n  Lines'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            '                       <= Macro\n'
+            '                          Template\n'
+            'Add                    += dition\n'
+            'Sub                    -= straction\n'
+            'Subml                  -= Multi\n'
+            '                          Lines\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_conditional_sections(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[Section:Condition]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser()
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name, 24)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section:Condition]\n'
+            'Key                     = Value\n')
+        config_file.close()
+
 
 class IndentCommandLineTestCase(LogsTestCase,
                                 StdOutTestCase):
