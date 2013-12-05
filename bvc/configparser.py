@@ -27,20 +27,19 @@ class VersionsConfigParser(RawConfigParser):
             if value is None:
                 value = ''
             operator = ''
-            key_indentation = indentation
             buildout_operator = OPERATORS.search(key)
             if buildout_operator:
                 operator = buildout_operator.group(0)
-                key_indentation -= 1
                 key = key[:-1]
             if key == '<':
                 value = '{value:>{indent}}'.format(
                     value=value, indent=indentation + len(value) - 1)
             else:
                 key = '{key:<{indent}}{operator}'.format(
-                    key=key, operator=operator, indent=key_indentation)
+                    key=key, operator=operator,
+                    indent=indentation - int(bool(operator)))
             value = value.replace('\n', '{:<{indent}}'.format(
-                '\n', indent=key_indentation + 3 + int(bool(operator))))
+                '\n', indent=indentation + 3))
             string_section += '{key}= {value}\n'.format(key=key, value=value)
 
         fd.write(string_section.encode('utf-8'))
