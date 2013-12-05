@@ -5,7 +5,7 @@ try:
 except ImportError:  # Python 3
     from configparser import RawConfigParser
 
-OPERATORS = re.compile(r'[+-<]$')
+OPERATORS = re.compile(r'[+-]$')
 
 
 class VersionsConfigParser(RawConfigParser):
@@ -33,7 +33,10 @@ class VersionsConfigParser(RawConfigParser):
                 operator = buildout_operator.group(0)
                 key_indentation -= 1
                 key = key[:-1]
-            key = key.ljust(key_indentation) + operator
+            if key == '<':
+                value = ''.rjust(indentation - 1) + value
+            else:
+                key = key.ljust(key_indentation) + operator
             value = str(value).replace('\n', '\n'.ljust(
                 key_indentation + 3 + int(bool(operator))))
             string_section += '%s= %s\n' % (key, value)

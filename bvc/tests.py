@@ -296,7 +296,7 @@ class VersionsConfigParserTestCase(TestCase):
             '[Section 2]\n'
             'Option-multiline                = Value1\n'
             '                                  Value2\n'
-            '                               <= Value1\n'
+            '<=                                Value1\n'
             '                                  Value2\n')
         config_file.close()
 
@@ -375,7 +375,7 @@ class VersionsConfigParserTestCase(TestCase):
     def test_parse_and_write_buildout_macros(self):
         config_file = NamedTemporaryFile()
         config_file.write(
-            '[Section]\n<=Macro\n  Template'.encode('utf-8'))
+            '[Section]\n<=Macro\n Template'.encode('utf-8'))
         config_file.seek(0)
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
@@ -385,7 +385,7 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
-            '                       <= Macro\n'
+            '<=                        Macro\n'
             '                          Template\n')
         config_file.close()
 
@@ -402,7 +402,7 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
-            '                       <= Macro\n'
+            '<=                        Macro\n'
             '                          Template\n')
         config_file.close()
 
