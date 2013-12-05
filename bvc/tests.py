@@ -385,7 +385,7 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
-            '<=                      = Macro\n'
+            '<=                        Macro\n'
             '                          Template\n')
         config_file.close()
 
