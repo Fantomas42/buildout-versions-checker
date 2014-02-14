@@ -33,6 +33,10 @@ def cmdline(argv=sys.argv[1:]):
         '--indent', dest='indentation', type=int, default=32,
         help='Spaces used when indenting "key = value" (default: 32)')
     parser.add_argument(
+        '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
+        help='Sorting algorithm used on the keys when writing source file '
+        '(default: None)')
+    parser.add_argument(
         '--service-url',  dest='service_url',
         default='http://pypi.python.org/pypi',
         help='The service to use for checking the packages '
@@ -87,7 +91,8 @@ def cmdline(argv=sys.argv[1:]):
             config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
-        config.write(source, options.indentation)
+
+        config.write(source, options.indentation, options.sorting)
         logger.info('- %s updated.' % source)
 
     sys.exit(0)
