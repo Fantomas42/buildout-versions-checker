@@ -19,6 +19,10 @@ class VersionsConfigParser(RawConfigParser):
     def alpha_sorter(self, items):
         return sorted(items, key=itemgetter(0))
 
+    def length_sorter(self, items):
+        return sorted(self.alpha_sorter(items),
+                      key=lambda x: len(x[0]))
+
     def write_section(self, fd, section, indentation, sorting):
         """
         Write a section of an .ini-format
