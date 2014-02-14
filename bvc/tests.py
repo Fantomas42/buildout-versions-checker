@@ -245,7 +245,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section', 'Option', 'Value')
         config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write_section(config_file, 'Section', 24)
+        config_parser.write_section(config_file, 'Section', 24, '')
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -269,9 +269,9 @@ class VersionsConfigParserTestCase(TestCase):
             config_file.read().decode('utf-8'),
             '[Section]\n'
             'Option                  = Value\n'
-            'Option-void             = \n'
             'Option-multiline        = Value1\n'
-            '                          Value2\n')
+            '                          Value2\n'
+            'Option-void             = \n')
         config_file.close()
 
     def test_write_section_length_sorting(self):
@@ -301,7 +301,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section', 'Option', 'Value')
         config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write_section(config_file, 'Section', 12)
+        config_parser.write_section(config_file, 'Section', 12, '')
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
