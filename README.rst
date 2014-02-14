@@ -42,6 +42,7 @@ Options
 
   usage: check-buildout-updates [-h] [-s SOURCE] [-i INCLUDES] [-e EXCLUDES]
                                 [-w] [--indent INDENTATION]
+                                [--sorting {alpha,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
                                 [-t THREADS] [-v] [-q]
 
@@ -60,6 +61,9 @@ Options
                           multiple times)
     -w, --write           Write the updates in the source file
     --indent INDENTATION  Spaces used when indenting "key = value" (default: 32)
+    --sorting {alpha,length}
+                          Sorting algorithm used on the keys when writing source
+                          file (default: None)
     --service-url SERVICE_URL
                           The service to use for checking the packages (default:
                           http://pypi.python.org/pypi)
