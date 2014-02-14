@@ -1,5 +1,6 @@
 """Config parser for Buildout Versions Checker"""
 import re
+from operator import itemgetter
 try:
     from ConfigParser import RawConfigParser
 except ImportError:  # Python 3
@@ -16,7 +17,7 @@ class VersionsConfigParser(RawConfigParser):
     optionxform = str
 
     def alpha_sorter(self, items):
-        return sorted(items)
+        return sorted(items, key=itemgetter(0))
 
     def write_section(self, fd, section, indentation, sorting):
         """
