@@ -16,7 +16,7 @@ class VersionsConfigParser(RawConfigParser):
     optionxform = str
 
     def alpha_sorter(self, items):
-        return sorted(items, key=lambda x: x[0])
+        return sorted(items)
 
     def write_section(self, fd, section, indentation, sorting):
         """
