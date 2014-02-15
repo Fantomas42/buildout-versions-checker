@@ -19,6 +19,10 @@ def cmdline(argv=sys.argv[1:]):
         '--indent', dest='indentation', type=int, default=32,
         help='Spaces used when indenting "key = value" (default: 32)')
     parser.add_argument(
+        '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
+        help='Sorting algorithm used on the keys when writing source file '
+        '(default: None)')
+    parser.add_argument(
         '-v', action='count', dest='verbosity', default=1,
         help='Increase verbosity (specify multiple times for more)')
     parser.add_argument(
@@ -46,7 +50,7 @@ def cmdline(argv=sys.argv[1:]):
         config = VersionsConfigParser()
         config_readed = config.read(source)
         if config_readed:
-            config.write(source, options.indentation)
+            config.write(source, options.indentation, options.sorting)
             logger.warning('- %s (re)indented at %s spaces.' % (
                 source, options.indentation))
         else:

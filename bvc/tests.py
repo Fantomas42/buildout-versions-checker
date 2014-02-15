@@ -245,12 +245,50 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section', 'Option', 'Value')
         config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write_section(config_file, 'Section', 24)
+        config_parser.write_section(config_file, 'Section', 24, '')
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
             'Option                  = Value\n'
+            'Option-void             = \n'
+            'Option-multiline        = Value1\n'
+            '                          Value2\n')
+        config_file.close()
+
+    def test_write_section_alpha_sorting(self):
+        config_file = NamedTemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section')
+        config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
+        config_parser.set('Section', 'Option-void', None)
+        config_parser.set('Section', 'Option', 'Value')
+        config_parser.write_section(config_file, 'Section', 24, 'alpha')
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Option                  = Value\n'
+            'Option-multiline        = Value1\n'
+            '                          Value2\n'
+            'Option-void             = \n')
+        config_file.close()
+
+    def test_write_section_length_sorting(self):
+        config_file = NamedTemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section')
+        config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
+        config_parser.set('Section', 'Option-void', None)
+        config_parser.set('Section', 'Option-size', None)
+        config_parser.set('Section', 'Option', 'Value')
+        config_parser.write_section(config_file, 'Section', 24, 'length')
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Option                  = Value\n'
+            'Option-size             = \n'
             'Option-void             = \n'
             'Option-multiline        = Value1\n'
             '                          Value2\n')
@@ -263,7 +301,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section', 'Option', 'Value')
         config_parser.set('Section', 'Option-void', None)
         config_parser.set('Section', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write_section(config_file, 'Section', 12)
+        config_parser.write_section(config_file, 'Section', 12, '')
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -297,6 +335,32 @@ class VersionsConfigParserTestCase(TestCase):
             'Option-multiline                = Value1\n'
             '                                  Value2\n'
             '<=                                Value1\n'
+            '                                  Value2\n')
+        config_file.close()
+
+    def test_write_alpha_sorting(self):
+        config_file = NamedTemporaryFile()
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section 1')
+        config_parser.add_section('Section 2')
+        config_parser.set('Section 1', 'Option', 'Value')
+        config_parser.set('Section 1', 'Option-void', None)
+        config_parser.set('Section 1', 'Option-add+', 'Value added')
+        config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
+        config_parser.set('Section 2', '<', 'Value1\nValue2')
+        config_parser.write(config_file.name, sorting='alpha')
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section 1]\n'
+            'Option                          = Value\n'
+            'Option-add                     += Value added\n'
+            'Option-void                     = \n'
+            '\n'
+            '[Section 2]\n'
+            '<=                                Value1\n'
+            '                                  Value2\n'
+            'Option-multiline                = Value1\n'
             '                                  Value2\n')
         config_file.close()
 
