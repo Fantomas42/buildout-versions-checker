@@ -17,6 +17,9 @@ def cmdline(argv=sys.argv[1:]):
         help='The file where versions are pinned '
         '(default: versions.cfg)')
     parser.add_argument(
+        '--eggs', dest='eggs', default='./eggs/',
+        help='The directory where the eggs are located')
+    parser.add_argument(
         '-e', '--exclude', action='append', dest='excludes', default=[],
         help='Exclude package when checking updates '
         '(can be used multiple times)')
