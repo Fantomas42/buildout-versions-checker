@@ -1,6 +1,7 @@
 """Version checker for Buildout Versions Checker"""
 import futures
 
+import os
 import socket
 from collections import OrderedDict
 from distutils.version import LooseVersion
@@ -161,11 +162,17 @@ class UnusedVersionsChecker(VersionsChecker):
         """
         Walk into the egg_directory to know the packages installed.
         """
-        return []
+        return [egg.split('-')[0] for egg in os.listdir(egg_directory)
+                if egg.endswith('.egg')]
 
     def find_unused_versions(self, versions, used_versions):
         """
         Make the difference between the listed versions and
         the used versions.
         """
-        return []
+        unused = versions[:]
+        used_version_lower = [x.lower() for x in used_versions]
+        for version in versions:
+            if version.lower().replace('-', '_') in used_version_lower:
+                unused.remove(version)
+        return unused
