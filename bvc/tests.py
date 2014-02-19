@@ -15,6 +15,7 @@ from unittest import TestLoader
 from bvc import checker
 from bvc.logger import logger
 from bvc.checker import VersionsChecker
+from bvc.checker import UnusedVersionsChecker
 from bvc.scripts import indent_buildout
 from bvc.scripts import check_buildout_updates
 from bvc.configparser import VersionsConfigParser
@@ -24,6 +25,16 @@ class LazyVersionsChecker(VersionsChecker):
     """
     VersionsChecker who does nothing at the initialisation
     excepting recording the arguments.
+    """
+    def __init__(self, **kw):
+        for key, value in kw.items():
+            setattr(self, key, value)
+
+
+class LazyUnusedVersionsChecker(UnusedVersionsChecker):
+    """
+    UnusedVersionsChecker who does nothing at the
+    initialisation excepting recording the arguments.
     """
     def __init__(self, **kw):
         for key, value in kw.items():
@@ -224,6 +235,19 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
         last_versions = OrderedDict([('egg', '1.5.1'), ('Egg', '1.0')])
         self.assertEquals(self.checker.find_updates(
             versions, last_versions), [('Egg', '1.0')])
+
+
+class UnusedVersionsCheckerTestCase(TestCase):
+
+    def setUp(self):
+        self.checker = LazyUnusedVersionsChecker()
+        super(UnusedVersionsCheckerTestCase, self).setUp()
+
+    def get_used_versions(self):
+        pass
+
+    def get_find_unused_versions(self):
+        pass
 
 
 class VersionsConfigParserTestCase(TestCase):
@@ -709,6 +733,7 @@ loader = TestLoader()
 
 test_suite = TestSuite(
     [loader.loadTestsFromTestCase(VersionsCheckerTestCase),
+     loader.loadTestsFromTestCase(UnusedVersionsCheckerTestCase),
      loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
      loader.loadTestsFromTestCase(IndentCommandLineTestCase),
      loader.loadTestsFromTestCase(CheckUpdatesCommandLineTestCase)
