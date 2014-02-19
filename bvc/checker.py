@@ -134,3 +134,38 @@ class VersionsChecker(object):
                 updates.append((package, last_version))
         logger.info('- %d package updates found.' % len(updates))
         return updates
+
+
+class UnusedVersionsChecker(VersionsChecker):
+    """
+    Checks unused eggs in a config file.
+    """
+
+    def __init__(self, source, egg_directory, excludes=[]):
+        """
+        Parses a config file containing pinned versions
+        of eggs and check their installation in the egg_directory.
+        """
+        self.source = source
+        self.excludes = excludes
+        self.egg_directory = egg_directory
+        self.source_versions = OrderedDict(
+            self.parse_versions(self.source))
+        self.versions = self.include_exclude_versions(
+            self.source_versions, excludes=self.excludes)
+        self.used_versions = self.get_used_versions(self.egg_directory)
+        self.unused = self.find_unused_versions(
+            self.versions.keys(), self.used_versions)
+
+    def get_used_versions(self, egg_directory):
+        """
+        Walk into the egg_directory to know the packages installed.
+        """
+        return []
+
+    def find_unused_versions(self, versions, used_versions):
+        """
+        Make the difference between the listed versions and
+        the used versions.
+        """
+        return []
