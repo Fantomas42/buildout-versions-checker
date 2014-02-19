@@ -6,6 +6,7 @@ import logging
 from argparse import ArgumentParser
 
 from bvc.logger import logger
+from bvc.checker import UnusedVersionsChecker
 from bvc.configparser import VersionsConfigParser
 
 
@@ -55,26 +56,23 @@ def cmdline(argv=sys.argv[1:]):
 
     source = options.source
     try:
-        config = VersionsConfigParser()
-        config.read(source)
-        if not config.has_section('versions'):
-            # TODO Change type
-            raise Exception('No pinned versions found in %s' % source)
-        versions = config.items('versions')
-        logger.info('- %d versions found in %s.' % (len(versions), source))
-        unused_packages = []
-
+        checker = UnusedVersionsChecker(
+            source, options.eggs, options.excludes)
     except Exception as e:
         sys.exit(str(e))
 
-    if not unused_packages:
+    if not checker.unused:
         sys.exit(0)
 
-    for package in unused_packages:
-        config.remove_option('versions', package)
+    for package in checker.unused:
         logger.warning('- %s is unused' % package)
 
     if options.write:
+        config = VersionsConfigParser()
+        config.read(source)
+        for package in checker.unused:
+            config.remove_option('versions', package)
+
         config.write(source, options.indentation, options.sorting)
         logger.info('- %s updated.' % source)
 
