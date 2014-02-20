@@ -258,7 +258,7 @@ class UnusedVersionsCheckerTestCase(TestCase):
             self.checker.find_unused_versions(
                 ['egg', 'CAPegg', 'composed-egg', 'unused'],
                 ['Egg', 'capegg', 'composed_egg']),
-            ['egg', 'CAPegg', 'composed-egg'])
+            ['unused'])
 
 
 class VersionsConfigParserTestCase(TestCase):
