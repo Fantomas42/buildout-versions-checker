@@ -244,13 +244,21 @@ class UnusedVersionsCheckerTestCase(TestCase):
         super(UnusedVersionsCheckerTestCase, self).setUp()
 
     def get_used_versions(self):
-        egg_directory = ''
-        self.assertEquals(self.checker.get_used_versions(
-            egg_directory), [])
+        import os
+        original_list_dir = os.listdir
+        os.listdir = lambda x: ['file',
+                                'package-1.0.egg',
+                                'composed_egg-1.0.egg']
+        self.assertEquals(self.checker.get_used_versions('.'),
+                          ['package', 'composed_egg'])
+        os.listdir = original_list_dir
 
     def get_find_unused_versions(self):
-        self.assertEquals(self.checker.find_unused_versions(
-            [], []), [])
+        self.assertEquals(
+            self.checker.find_unused_versions(
+                ['egg', 'CAPegg', 'composed-egg', 'unused'],
+                ['Egg', 'capegg', 'composed_egg']),
+            ['egg', 'CAPegg', 'composed-egg'])
 
 
 class VersionsConfigParserTestCase(TestCase):
