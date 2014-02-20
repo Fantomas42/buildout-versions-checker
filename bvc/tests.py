@@ -244,10 +244,13 @@ class UnusedVersionsCheckerTestCase(TestCase):
         super(UnusedVersionsCheckerTestCase, self).setUp()
 
     def get_used_versions(self):
-        pass
+        egg_directory = ''
+        self.assertEquals(self.checker.get_used_versions(
+            egg_directory), [])
 
     def get_find_unused_versions(self):
-        pass
+        self.assertEquals(self.checker.find_unused_versions(
+            [], []), [])
 
 
 class VersionsConfigParserTestCase(TestCase):
