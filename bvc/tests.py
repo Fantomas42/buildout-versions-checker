@@ -243,7 +243,7 @@ class UnusedVersionsCheckerTestCase(TestCase):
         self.checker = LazyUnusedVersionsChecker()
         super(UnusedVersionsCheckerTestCase, self).setUp()
 
-    def get_used_versions(self):
+    def test_get_used_versions(self):
         import os
         original_list_dir = os.listdir
         os.listdir = lambda x: ['file',
@@ -253,7 +253,7 @@ class UnusedVersionsCheckerTestCase(TestCase):
                           ['package', 'composed_egg'])
         os.listdir = original_list_dir
 
-    def get_find_unused_versions(self):
+    def test_get_find_unused_versions(self):
         self.assertEquals(
             self.checker.find_unused_versions(
                 ['egg', 'CAPegg', 'composed-egg', 'unused'],
