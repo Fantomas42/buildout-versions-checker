@@ -1,5 +1,7 @@
 """Tests for Buildout version checker"""
+import os
 import sys
+
 from logging import Handler
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
@@ -26,6 +28,7 @@ class LazyVersionsChecker(VersionsChecker):
     VersionsChecker who does nothing at the initialisation
     excepting recording the arguments.
     """
+
     def __init__(self, **kw):
         for key, value in kw.items():
             setattr(self, key, value)
@@ -36,6 +39,7 @@ class LazyUnusedVersionsChecker(UnusedVersionsChecker):
     UnusedVersionsChecker who does nothing at the
     initialisation excepting recording the arguments.
     """
+
     def __init__(self, **kw):
         for key, value in kw.items():
             setattr(self, key, value)
@@ -70,6 +74,7 @@ class StubbedServerProxyTestCase(TestCase):
     TestCase enabling a stub around the ServerProxy
     class used by VersionsChecker.
     """
+
     def setUp(self):
         self.stub_server_proxy()
         super(StubbedServerProxyTestCase, self).setUp()
@@ -90,6 +95,34 @@ class StubbedServerProxyTestCase(TestCase):
         Restaure the original ServerProxy class.
         """
         checker.ServerProxy = self.original_server_proxy
+
+
+class StubbedListDirTestCase(TestCase):
+    """
+    TestCase for faking the os.listdir calls.
+    """
+    listdir_content = []
+
+    def setUp(self):
+        self.stub_listdir()
+        super(StubbedListDirTestCase, self).setUp()
+
+    def tearDown(self):
+        self.unstub_listdir()
+        super(StubbedListDirTestCase, self).tearDown()
+
+    def stub_listdir(self):
+        """
+        Replace the os.listdir function.
+        """
+        self.original_listdir = os.listdir
+        os.listdir = lambda x: self.listdir_content
+
+    def unstub_listdir(self):
+        """
+        Restaure the original os.listdir function.
+        """
+        os.listdir = self.original_listdir
 
 
 class DictHandler(Handler):
@@ -115,6 +148,7 @@ class LogsTestCase(TestCase):
     TestCase allowing to check the messages
     emitted by the logs.
     """
+
     def setUp(self):
         self.logs = DictHandler()
         logger.addHandler(self.logs)
@@ -138,6 +172,7 @@ class StdOutTestCase(TestCase):
     """
     TestCase for capturing printed output on stdout.
     """
+
     def setUp(self):
         self.output = StringIO()
         self.saved_stdout = sys.stdout
@@ -237,21 +272,18 @@ class VersionsCheckerTestCase(StubbedServerProxyTestCase):
             versions, last_versions), [('Egg', '1.0')])
 
 
-class UnusedVersionsCheckerTestCase(TestCase):
+class UnusedVersionsCheckerTestCase(StubbedListDirTestCase):
 
     def setUp(self):
         self.checker = LazyUnusedVersionsChecker()
         super(UnusedVersionsCheckerTestCase, self).setUp()
 
     def test_get_used_versions(self):
-        import os
-        original_list_dir = os.listdir
-        os.listdir = lambda x: ['file',
+        self.listdir_content = ['file',
                                 'package-1.0.egg',
                                 'composed_egg-1.0.egg']
         self.assertEquals(self.checker.get_used_versions('.'),
                           ['package', 'composed_egg'])
-        os.listdir = original_list_dir
 
     def test_get_find_unused_versions(self):
         self.assertEquals(
@@ -522,7 +554,8 @@ class VersionsConfigParserTestCase(TestCase):
 
 
 class FindUnusedVersionsTestCase(LogsTestCase,
-                                 StdOutTestCase):
+                                 StdOutTestCase,
+                                 StubbedListDirTestCase):
 
     def test_simple(self):
         pass
