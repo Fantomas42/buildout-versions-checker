@@ -521,6 +521,13 @@ class VersionsConfigParserTestCase(TestCase):
         config_file.close()
 
 
+class FindUnusedVersionsTestCase(LogsTestCase,
+                                 StdOutTestCase):
+
+    def test_simple(self):
+        pass
+
+
 class IndentCommandLineTestCase(LogsTestCase,
                                 StdOutTestCase):
 
@@ -747,6 +754,7 @@ test_suite = TestSuite(
      loader.loadTestsFromTestCase(UnusedVersionsCheckerTestCase),
      loader.loadTestsFromTestCase(VersionsConfigParserTestCase),
      loader.loadTestsFromTestCase(IndentCommandLineTestCase),
+     loader.loadTestsFromTestCase(FindUnusedVersionsTestCase),
      loader.loadTestsFromTestCase(CheckUpdatesCommandLineTestCase)
      ]
 )
