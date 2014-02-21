@@ -19,6 +19,7 @@ from bvc.logger import logger
 from bvc.checker import VersionsChecker
 from bvc.checker import UnusedVersionsChecker
 from bvc.scripts import indent_buildout
+from bvc.scripts import find_unused_versions
 from bvc.scripts import check_buildout_updates
 from bvc.configparser import VersionsConfigParser
 
@@ -556,9 +557,108 @@ class VersionsConfigParserTestCase(TestCase):
 class FindUnusedVersionsTestCase(LogsTestCase,
                                  StdOutTestCase,
                                  StubbedListDirTestCase):
+    listdir_content = [
+        'egg-1.0.egg',
+        'composed_egg-1.0.egg']
 
     def test_simple(self):
-        pass
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\nEgg=1.0\n'
+                          'Unused-egg=1.0\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 2 packages need to be checked for updates.'],
+            warning=['- Unused-egg is unused.'])
+        self.assertStdOut('- Unused-egg is unused.\n')
+        config_file.close()
+
+    def test_write(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\nEgg=1.0\n'
+                          'Unused-egg=1.0\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s %s -w' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 2 packages need to be checked for updates.',
+                  '- %s updated.' % config_file.name],
+            warning=['- Unused-egg is unused.'])
+        self.assertStdOut('- Unused-egg is unused.\n')
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[versions]\nEgg                             = 1.0\n')
+
+    def test_no_source(self):
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('')
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            debug=["'versions' section not found in versions.cfg."],
+            info=['- 0 packages need to be checked for updates.'])
+        self.assertStdOut('')
+
+    def test_exclude(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\nEgg=1.0\n'
+                          'Unused-egg=1.0\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s %s -e unused-egg' %
+                                         config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 1 packages need to be checked for updates.'])
+        self.assertStdOut('')
+        config_file.close()
+
+    def test_output_max(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\nEgg=1.0\n'
+                          'Unused-egg=1.0\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s %s -vvv' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 2 packages need to be checked for updates.'],
+            warning=['- Unused-egg is unused.'])
+        self.assertStdOut(
+            '- 2 versions found in %s.\n'
+            '- 2 packages need to be checked for updates.\n'
+            '- Unused-egg is unused.\n' % config_file.name)
+        config_file.close()
+
+    def test_output_none(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\nEgg=1.0\n'
+                          'Unused-egg=1.0\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s %s -q' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s invalid -qqqq')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut('')
+        config_file.close()
+
+    def test_handle_error(self):
+        self.listdir_content = 42
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\n'.encode('utf-8'))
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('-s %s' % config_file.name)
+        self.assertEqual(context.exception.code,
+                         "'int' object is not iterable")
 
 
 class IndentCommandLineTestCase(LogsTestCase,

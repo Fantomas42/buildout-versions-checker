@@ -65,7 +65,7 @@ def cmdline(argv=sys.argv[1:]):
         sys.exit(0)
 
     for package in checker.unused:
-        logger.warning('- %s is unused' % package)
+        logger.warning('- %s is unused.' % package)
 
     if options.write:
         config = VersionsConfigParser()
