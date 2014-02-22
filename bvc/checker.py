@@ -170,7 +170,7 @@ class UnusedVersionsChecker(VersionsChecker):
         Make the difference between the listed versions and
         the used versions.
         """
-        unused = versions[:]
+        unused = list(versions)
         used_version_lower = [x.lower() for x in used_versions]
         for version in versions:
             if version.lower().replace('-', '_') in used_version_lower:
