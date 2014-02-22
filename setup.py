@@ -44,6 +44,7 @@ setup(
     entry_points={
         'console_scripts': [
             'indent-buildout=bvc.scripts.indent_buildout:cmdline',
+            'find-unused-versions=bvc.scripts.find_unused_versions:cmdline',
             'check-buildout-updates=bvc.scripts.check_buildout_updates:cmdline'
         ]
     },

@@ -92,16 +92,6 @@ With this part into your buildout, a new script named ``./bin/evolve`` will
 be created. It will check for the available updates of the eggs listed in the
 ``versions`` section of the ``versions.cfg`` file, then write the updates found.
 
-Extra
------
-
-Buildout-versions-checker provides an extra script named
-``indent-buildout``, designed for just (re)indent your buildout files.
-Because the buildout files are sometimes mixed with spaces and tabulations
-which may affect viewing and editing. ::
-
-  $ ./indent-buildout -s buildout.cfg
-
 Python compatibility
 --------------------
 
@@ -113,6 +103,30 @@ Requirements
 
 * six >= 1.4.1
 * futures >= 2.1.4
+
+Extras
+------
+
+Buildout-versions-checker also provides extra scripts for simplify the
+maintenance of yours versions files.
+
+``indent-buildout``
+===================
+
+``indent-buildout`` is designed for just (re)indenting your buildout files.
+Because the buildout files are sometimes mixed with spaces and tabulations
+which may affect viewing and editing. ::
+
+  $ ./indent-buildout -s buildout.cfg -s versions.cfg
+
+``find-unused-versions``
+========================
+
+``find-unused-versions`` just check if your have not pinned eggs which are
+not used in your installation. For better results, run the script after a
+full and fresh install. ::
+
+  $ ./find-unused-versions
 
 .. _`zc.buildout`: http://www.buildout.org/
 .. |travis-develop| image:: https://travis-ci.org/Fantomas42/buildout-versions-checker.png?branch=develop
