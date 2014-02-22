@@ -652,6 +652,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
         config_file.close()
 
     def test_handle_error(self):
+        original_listdir_content = self.listdir_content
         self.listdir_content = 42
         config_file = NamedTemporaryFile()
         config_file.write('[versions]\n'.encode('utf-8'))
@@ -659,6 +660,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
             find_unused_versions.cmdline('-s %s' % config_file.name)
         self.assertEqual(context.exception.code,
                          "'int' object is not iterable")
+        self.listdir_content = original_listdir_content
 
 
 class IndentCommandLineTestCase(LogsTestCase,
