@@ -4,7 +4,7 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-__version__ = '1.4'
+__version__ = '1.5'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
@@ -44,6 +44,7 @@ setup(
     entry_points={
         'console_scripts': [
             'indent-buildout=bvc.scripts.indent_buildout:cmdline',
+            'find-unused-versions=bvc.scripts.find_unused_versions:cmdline',
             'check-buildout-updates=bvc.scripts.check_buildout_updates:cmdline'
         ]
     },
