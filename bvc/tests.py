@@ -182,7 +182,6 @@ class StdOutTestCase(TestCase):
 
     def tearDown(self):
         sys.stdout = self.saved_stdout
-        #self.output.close()
         super(StdOutTestCase, self).tearDown()
 
     def assertStdOut(self, output):
