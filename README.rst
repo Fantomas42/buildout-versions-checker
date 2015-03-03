@@ -117,7 +117,7 @@ maintenance of yours versions files.
 Because the buildout files are sometimes mixed with spaces and tabulations
 which may affect viewing and editing. ::
 
-  $ ./indent-buildout -s buildout.cfg -s versions.cfg
+  $ ./indent-buildout buildout.cfg versions.cfg
 
 ``find-unused-versions``
 ========================
