@@ -13,8 +13,8 @@ def cmdline(argv=sys.argv[1:]):
     parser = ArgumentParser(
         description='(Re)indent buildout related files')
     parser.add_argument(
-        '-s', '--source', action='append', dest='sources',
-        default=[], help='The buildout files to (re)indent')
+        'sources', nargs='*',
+        help='The buildout files to (re)indent')
     parser.add_argument(
         '--indent', dest='indentation', type=int, default=32,
         help='Spaces used when indenting "key = value" (default: 32)')
