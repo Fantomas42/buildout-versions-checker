@@ -670,7 +670,7 @@ class IndentCommandLineTestCase(LogsTestCase,
         config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            indent_buildout.cmdline('-s %s' % config_file.name)
+            indent_buildout.cmdline('%s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             warning=['- %s (re)indented at 32 spaces.' % config_file.name])
@@ -684,7 +684,7 @@ class IndentCommandLineTestCase(LogsTestCase,
 
     def test_invalid_source(self):
         with self.assertRaises(SystemExit) as context:
-            indent_buildout.cmdline('-s invalid.cfg')
+            indent_buildout.cmdline('invalid.cfg')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(warning=['- invalid.cfg cannot be read.'])
         self.assertStdOut('- invalid.cfg cannot be read.\n')
@@ -694,7 +694,7 @@ class IndentCommandLineTestCase(LogsTestCase,
         config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            indent_buildout.cmdline('-s %s -s invalid.cfg' % config_file.name)
+            indent_buildout.cmdline('%s invalid.cfg' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             warning=['- %s (re)indented at 32 spaces.' % config_file.name,
@@ -714,11 +714,11 @@ class IndentCommandLineTestCase(LogsTestCase,
 
     def test_output_none(self):
         with self.assertRaises(SystemExit) as context:
-            indent_buildout.cmdline('-s invalid.cfg -q')
+            indent_buildout.cmdline('invalid.cfg -q')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
         with self.assertRaises(SystemExit) as context:
-            indent_buildout.cmdline('-s source.cfg -qqqqqqq')
+            indent_buildout.cmdline('source.cfg -qqqqqqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
 
