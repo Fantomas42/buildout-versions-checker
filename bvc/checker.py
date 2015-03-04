@@ -4,7 +4,7 @@ import futures
 import os
 import json
 import socket
-import urllib2
+from urllib2 import urlopen
 from collections import OrderedDict
 from distutils.version import LooseVersion
 try:
@@ -107,9 +107,9 @@ class VersionsChecker(object):
         """
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
-        package_json_url = '%s/%s/json' % (self.service_url, package)
+        package_json_url = '%s/%s/json' % (service_url, package)
         socket.setdefaulttimeout(timeout)
-        content = urllib2.urlopen(package_json_url).read()
+        content = urlopen(package_json_url).read()
         socket.setdefaulttimeout(None)
         results = json.loads(content)
         for version in results['releases']:

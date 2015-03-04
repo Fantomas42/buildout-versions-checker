@@ -1,6 +1,7 @@
 """Tests for Buildout version checker"""
 import os
 import sys
+import json
 
 from logging import Handler
 from collections import OrderedDict
@@ -46,56 +47,51 @@ class LazyUnusedVersionsChecker(UnusedVersionsChecker):
             setattr(self, key, value)
 
 
-class PypiServerProxy(object):
+class URLOpener(object):
     """
-    Fake Pypi proxy server.
+    Fake urlopen.
     """
     results = {
-        'egg': [
-            {'name': 'Egg', 'version': '0.2'},
-            {'name': 'EGG', 'version': '0.3'},
-            {'name': 'eggtractor', 'version': '0.42'}
-        ],
-        'error-egg': [{}],
+        'egg': {
+            'releases': ['0.3', '0.2']
+        },
+        'error-egg': [],
     }
 
-    def __init__(*ka, **kw):
-        pass
-
-    def search(self, query_dict):
+    def __call__(self, url):
+        package = url.split('/')[-2]
         try:
-            return self.results[query_dict['name']]
+            return StringIO(json.dumps(self.results[package]))
         except KeyError:
-            pass
-        return []
+            return StringIO('')  # TODO: raise 404
 
 
-class StubbedServerProxyTestCase(TestCase):
+class StubbedURLOpenTestCase(TestCase):
     """
-    TestCase enabling a stub around the ServerProxy
-    class used by VersionsChecker.
+    TestCase enabling a stub around the urllib2.urlopen
+    used by VersionsChecker.
     """
 
     def setUp(self):
-        self.stub_server_proxy()
-        super(StubbedServerProxyTestCase, self).setUp()
+        self.stub_url_open()
+        super(StubbedURLOpenTestCase, self).setUp()
 
     def tearDown(self):
-        self.unstub_server_proxy()
-        super(StubbedServerProxyTestCase, self).tearDown()
+        self.unstub_url_open()
+        super(StubbedURLOpenTestCase, self).tearDown()
 
-    def stub_server_proxy(self):
+    def stub_url_open(self):
         """
-        Replace the ServerProxy class used in bvc.
+        Replace the urlopen used in bvc.
         """
-        self.original_server_proxy = checker.ServerProxy
-        checker.ServerProxy = PypiServerProxy
+        self.original_url_open = checker.urlopen
+        checker.urlopen = URLOpener()
 
-    def unstub_server_proxy(self):
+    def unstub_url_open(self):
         """
-        Restaure the original ServerProxy class.
+        Restaure the original urlopen function.
         """
-        checker.ServerProxy = self.original_server_proxy
+        checker.urlopen = self.original_url_open
 
 
 class StubbedListDirTestCase(TestCase):
@@ -189,10 +185,11 @@ class StdOutTestCase(TestCase):
                           output)
 
 
-class VersionsCheckerTestCase(StubbedServerProxyTestCase):
+class VersionsCheckerTestCase(StubbedURLOpenTestCase):
 
     def setUp(self):
-        self.checker = LazyVersionsChecker()
+        self.checker = LazyVersionsChecker(
+            service_url='http://custom.pypi.org/pypi')
         super(VersionsCheckerTestCase, self).setUp()
 
     def test_parse_versions(self):
@@ -725,7 +722,7 @@ class IndentCommandLineTestCase(LogsTestCase,
 
 class CheckUpdatesCommandLineTestCase(LogsTestCase,
                                       StdOutTestCase,
-                                      StubbedServerProxyTestCase):
+                                      StubbedURLOpenTestCase):
 
     def test_no_args_no_source(self):
         with self.assertRaises(SystemExit) as context:
