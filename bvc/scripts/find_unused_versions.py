@@ -14,7 +14,7 @@ def cmdline(argv=sys.argv[1:]):
     parser = ArgumentParser(
         description='Find unused pinned eggs')
     parser.add_argument(
-        '-s', '--source', dest='source', default='versions.cfg',
+        'source', default='versions.cfg', nargs='?',
         help='The file where versions are pinned '
         '(default: versions.cfg)')
     parser.add_argument(
