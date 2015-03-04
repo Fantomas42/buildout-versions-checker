@@ -15,7 +15,7 @@ def cmdline(argv=sys.argv[1:]):
         description='Check availables updates from a '
         'version section of a buildout script')
     parser.add_argument(
-        '-s', '--source', dest='source', default='versions.cfg',
+        'source', default='versions.cfg', nargs='?',
         help='The file where versions are pinned '
         '(default: versions.cfg)')
     parser.add_argument(

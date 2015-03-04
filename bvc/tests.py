@@ -566,7 +566,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
                           'Unused-egg=1.0\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s %s' % config_file.name)
+            find_unused_versions.cmdline(config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             info=['- 2 versions found in %s.' % config_file.name,
@@ -581,7 +581,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
                           'Unused-egg=1.0\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s %s -w' % config_file.name)
+            find_unused_versions.cmdline('%s -w' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             info=['- 2 versions found in %s.' % config_file.name,
@@ -608,7 +608,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
                           'Unused-egg=1.0\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s %s -e unused-egg' %
+            find_unused_versions.cmdline('%s -e unused-egg' %
                                          config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
@@ -623,7 +623,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
                           'Unused-egg=1.0\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s %s -vvv' % config_file.name)
+            find_unused_versions.cmdline('%s -vvv' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             info=['- 2 versions found in %s.' % config_file.name,
@@ -641,11 +641,11 @@ class FindUnusedVersionsTestCase(LogsTestCase,
                           'Unused-egg=1.0\n'.encode('utf-8'))
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s %s -q' % config_file.name)
+            find_unused_versions.cmdline('%s -q' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s invalid -qqqq')
+            find_unused_versions.cmdline('invalid -qqqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut('')
         config_file.close()
@@ -656,7 +656,7 @@ class FindUnusedVersionsTestCase(LogsTestCase,
         config_file = NamedTemporaryFile()
         config_file.write('[versions]\n'.encode('utf-8'))
         with self.assertRaises(SystemExit) as context:
-            find_unused_versions.cmdline('-s %s' % config_file.name)
+            find_unused_versions.cmdline('%s' % config_file.name)
         self.assertEqual(context.exception.code,
                          "'int' object is not iterable")
         self.listdir_content = original_listdir_content
@@ -781,7 +781,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file = NamedTemporaryFile()
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline(
-                '-i egg -w -s %s' % config_file.name)
+                '-i egg -w %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         config_file.seek(0)
         self.assertEquals(
@@ -798,7 +798,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline(
-                '-e excluded -w -s %s' % config_file.name)
+                '-e excluded -w %s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=['-> Last version of egg is 0.3.',
