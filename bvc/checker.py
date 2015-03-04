@@ -2,14 +2,14 @@
 import futures
 
 import os
+import json
 import socket
+import urllib2
 from collections import OrderedDict
 from distutils.version import LooseVersion
 try:
-    from xmlrpclib import ServerProxy
     from ConfigParser import NoSectionError
 except ImportError:  # Python 3
-    from xmlrpc.client import ServerProxy
     from configparser import NoSectionError
 
 from bvc.logger import logger
@@ -105,17 +105,16 @@ class VersionsChecker(object):
         """
         Fetch the last version of a package on Pypi.
         """
-        package_key = package.lower()
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
+        package_json_url = '%s/%s/json' % (self.service_url, package)
         socket.setdefaulttimeout(timeout)
-        client = ServerProxy(service_url)
-        results = client.search({'name': package})
+        content = urllib2.urlopen(package_json_url).read()
         socket.setdefaulttimeout(None)
-        for result in results:
-            if result['name'].lower() == package_key:
-                if LooseVersion(result['version']) > LooseVersion(max_version):
-                    max_version = result['version']
+        results = json.loads(content)
+        for version in results['releases']:
+            if LooseVersion(version) > LooseVersion(max_version):
+                max_version = version
         logger.debug('-> Last version of %s is %s.' % (package, max_version))
         return (package, max_version)
 
