@@ -40,19 +40,21 @@ Options
 
 ::
 
-  usage: check-buildout-updates [-h] [-s SOURCE] [-i INCLUDES] [-e EXCLUDES]
-                                [-w] [--indent INDENTATION]
+  usage: check-buildout-updates [-h] [-i INCLUDES] [-e EXCLUDES] [-w]
+                                [--indent INDENTATION]
                                 [--sorting {alpha,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
                                 [-t THREADS] [-v] [-q]
+                                [source]
 
   Check availables updates from a version section of a buildout script
 
+  positional arguments:
+    source                The file where versions are pinned (default:
+                          versions.cfg)
+
   optional arguments:
     -h, --help            show this help message and exit
-    -s SOURCE, --source SOURCE
-                          The file where versions are pinned (default:
-                          versions.cfg)
     -i INCLUDES, --include INCLUDES
                           Include package when checking updates (can be used
                           multiple times)
@@ -86,7 +88,7 @@ automaticly find and write the updates. ::
   recipe                  = zc.recipe.egg
   eggs                    = buildout-versions-checker
   scripts                 = check-buildout-updates=evolve
-  arguments               = '-s versions.cfg -w'
+  arguments               = '-w --indent 24 buildout.cfg'
 
 With this part into your buildout, a new script named ``./bin/evolve`` will
 be created. It will check for the available updates of the eggs listed in the
