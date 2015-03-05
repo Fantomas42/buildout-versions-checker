@@ -40,7 +40,8 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
     install_requires=['six',
-                      'futures'],
+                      'futures',
+                      'packaging'],
     entry_points={
         'console_scripts': [
             'indent-buildout=bvc.scripts.indent_buildout:cmdline',
