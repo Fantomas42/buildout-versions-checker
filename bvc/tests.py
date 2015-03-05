@@ -4,13 +4,14 @@ import sys
 import json
 
 from logging import Handler
-from urllib2 import URLError
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 try:
+    from urllib2 import URLError
     from cStringIO import StringIO
 except ImportError:  # Python 3
     from io import StringIO
+    from urllib.error import URLError
 
 from unittest import TestCase
 from unittest import TestSuite
