@@ -246,21 +246,23 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
     def test_fetch_last_versions(self):
         self.assertEquals(
             self.checker.fetch_last_versions(
-                ['egg', 'UnknowEgg'], 'service_url', 1, 1),
+                ['egg', 'UnknowEgg'], False, 'service_url', 1, 1),
             [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
         results = self.checker.fetch_last_versions(
-            ['egg', 'UnknowEgg'], 'service_url', 1, 2)
+            ['egg', 'UnknowEgg'], False, 'service_url', 1, 2)
         self.assertEquals(
             dict(results),
             dict([('egg', '0.3'), ('UnknowEgg', '0.0.0')]))
 
     def test_fetch_last_version(self):
         self.assertEquals(
-            self.checker.fetch_last_version('UnknowEgg', 'service_url', 1),
+            self.checker.fetch_last_version(
+                'UnknowEgg', False, 'service_url', 1),
             ('UnknowEgg', '0.0.0')
         )
         self.assertEquals(
-            self.checker.fetch_last_version('egg', 'service_url', 1),
+            self.checker.fetch_last_version(
+                'egg', False, 'service_url', 1),
             ('egg', '0.3')
         )
 
