@@ -5,13 +5,15 @@ import os
 import json
 import socket
 
-from urllib2 import urlopen
-from urllib2 import URLError
 from collections import OrderedDict
 from distutils.version import LooseVersion
 try:
+    from urllib2 import urlopen
+    from urllib2 import URLError
     from ConfigParser import NoSectionError
 except ImportError:  # Python 3
+    from urllib.error import URLError
+    from urllib.request import urlopen
     from configparser import NoSectionError
 
 from bvc.logger import logger
