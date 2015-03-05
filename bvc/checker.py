@@ -6,7 +6,6 @@ import json
 import socket
 from urllib2 import urlopen
 from urllib2 import URLError
-from urlparse import urljoin
 from collections import OrderedDict
 from distutils.version import LooseVersion
 try:
@@ -109,7 +108,7 @@ class VersionsChecker(object):
         """
         max_version = self.default_version
         logger.info('> Fetching latest datas for %s...' % package)
-        package_json_url = urljoin(service_url, '%s/json' % package)
+        package_json_url = '%s/%s/json' % (service_url, package)
         socket.setdefaulttimeout(timeout)
         try:
             content = urlopen(package_json_url).read()
