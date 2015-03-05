@@ -759,6 +759,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg.",
+                   '!> http://pypi.python.org/pypi/unavailable/json 404',
                    '-> Last version of unavailable is 0.0.0.'],
             info=['- 1 packages need to be checked for updates.',
                   '> Fetching latest datas for unavailable...',

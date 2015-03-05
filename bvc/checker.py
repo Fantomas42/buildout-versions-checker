@@ -4,6 +4,7 @@ import futures
 import os
 import json
 import socket
+
 from urllib2 import urlopen
 from urllib2 import URLError
 from collections import OrderedDict
@@ -112,8 +113,9 @@ class VersionsChecker(object):
         socket.setdefaulttimeout(timeout)
         try:
             content = urlopen(package_json_url).read()
-        except URLError:
+        except URLError, error:
             content = '{"releases": []}'
+            logger.debug('!> %s %s' % (package_json_url, error.reason))
         results = json.loads(content)
         socket.setdefaulttimeout(None)
         for version in results['releases']:
