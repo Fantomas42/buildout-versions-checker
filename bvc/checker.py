@@ -113,7 +113,7 @@ class VersionsChecker(object):
         socket.setdefaulttimeout(timeout)
         try:
             content = urlopen(package_json_url).read()
-        except URLError, error:
+        except URLError as error:
             content = '{"releases": []}'
             logger.debug('!> %s %s' % (package_json_url, error.reason))
         results = json.loads(content)
