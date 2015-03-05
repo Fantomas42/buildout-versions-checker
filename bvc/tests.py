@@ -4,6 +4,7 @@ import sys
 import json
 
 from logging import Handler
+from urllib2 import URLError
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
 try:
@@ -63,7 +64,7 @@ class URLOpener(object):
         try:
             return StringIO(json.dumps(self.results[package]))
         except KeyError:
-            return StringIO('')  # TODO: raise 404
+            raise URLError('404')
 
 
 class StubbedURLOpenTestCase(TestCase):
@@ -875,7 +876,8 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i error-egg')
-        self.assertEqual(context.exception.code, "'name'")
+        self.assertEqual(context.exception.code,
+                         "list indices must be integers, not str")
 
 
 loader = TestLoader()
