@@ -4,7 +4,7 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 
-__version__ = '1.7'
+__version__ = '1.8'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
@@ -40,7 +40,8 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
     install_requires=['six',
-                      'futures'],
+                      'futures',
+                      'packaging'],
     entry_points={
         'console_scripts': [
             'indent-buildout=bvc.scripts.indent_buildout:cmdline',

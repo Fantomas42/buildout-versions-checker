@@ -40,7 +40,7 @@ Options
 
 ::
 
-  usage: check-buildout-updates [-h] [-i INCLUDES] [-e EXCLUDES] [-w]
+  usage: check-buildout-updates [-h] [--pre] [-i INCLUDES] [-e EXCLUDES] [-w]
                                 [--indent INDENTATION]
                                 [--sorting {alpha,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
@@ -55,6 +55,8 @@ Options
 
   optional arguments:
     -h, --help            show this help message and exit
+    --pre                 Allow pre-release and development versions (by default
+                          only stable versions are found)
     -i INCLUDES, --include INCLUDES
                           Include package when checking updates (can be used
                           multiple times)
