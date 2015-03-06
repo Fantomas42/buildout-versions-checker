@@ -6,7 +6,6 @@ import json
 import socket
 
 from collections import OrderedDict
-from distutils.version import LooseVersion
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
@@ -15,6 +14,8 @@ except ImportError:  # Python 3
     from urllib.error import URLError
     from urllib.request import urlopen
     from configparser import NoSectionError
+
+from packaging.version import parse as parse_version
 
 from bvc.logger import logger
 from bvc.configparser import VersionsConfigParser
@@ -116,7 +117,7 @@ class VersionsChecker(object):
         """
         Fetch the last version of a package on Pypi.
         """
-        max_version = self.default_version
+        max_version = parse_version(self.default_version)
         logger.info('> Fetching latest datas for %s...' % package)
         package_json_url = '%s/%s/json' % (service_url, package)
         socket.setdefaulttimeout(timeout)
@@ -128,10 +129,13 @@ class VersionsChecker(object):
         results = json.loads(content)
         socket.setdefaulttimeout(None)
         for version in results['releases']:
-            if LooseVersion(version) > LooseVersion(max_version):
+            version = parse_version(version)
+            if version.is_prerelease and not allow_pre_release:
+                continue
+            if version > max_version:
                 max_version = version
         logger.debug('-> Last version of %s is %s.' % (package, max_version))
-        return (package, max_version)
+        return (package, str(max_version))
 
     def find_updates(self, versions, last_versions):
         """
