@@ -57,6 +57,9 @@ class URLOpener(object):
         'egg': {
             'releases': ['0.3', '0.2']
         },
+        'egg-dev': {
+            'releases': ['1.0', '1.1b1']
+        },
         'error-egg': [],
     }
 
@@ -264,6 +267,18 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
             self.checker.fetch_last_version(
                 'egg', False, 'service_url', 1),
             ('egg', '0.3')
+        )
+
+    def test_fetch_last_version_with_prereleases(self):
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                'egg-dev', False, 'service_url', 1),
+            ('egg-dev', '1.0')
+        )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                'egg-dev', True, 'service_url', 1),
+            ('egg-dev', '1.1b1')
         )
 
     def test_find_updates(self):
