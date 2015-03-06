@@ -6,7 +6,6 @@ import json
 import socket
 
 from collections import OrderedDict
-from distutils.version import LooseVersion
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
@@ -15,6 +14,8 @@ except ImportError:  # Python 3
     from urllib.error import URLError
     from urllib.request import urlopen
     from configparser import NoSectionError
+
+from packaging.version import parse as parse_version
 
 from bvc.logger import logger
 from bvc.configparser import VersionsConfigParser
@@ -26,7 +27,9 @@ class VersionsChecker(object):
     """
     default_version = '0.0.0'
 
-    def __init__(self, source, includes=[], excludes=[],
+    def __init__(self, source,
+                 allow_pre_release=False,
+                 includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
                  timeout=10, threads=10):
         """
@@ -39,12 +42,14 @@ class VersionsChecker(object):
         self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
+        self.allow_pre_release = allow_pre_release
         self.source_versions = OrderedDict(
             self.parse_versions(self.source))
         self.versions = self.include_exclude_versions(
             self.source_versions, self.includes, self.excludes)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.versions.keys(),
+                                     self.allow_pre_release,
                                      self.service_url,
                                      self.timeout,
                                      self.threads))
@@ -85,7 +90,8 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, service_url, timeout, threads):
+    def fetch_last_versions(self, packages, allow_pre_release,
+                            service_url, timeout, threads):
         """
         Fetch the latest versions of a list of packages,
         in a threaded manner or not.
@@ -95,21 +101,23 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, service_url, timeout)
+                                         package, allow_pre_release,
+                                         service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, service_url, timeout))
+                    package, allow_pre_release, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, service_url, timeout):
+    def fetch_last_version(self, package, allow_pre_release,
+                           service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
-        max_version = self.default_version
+        max_version = parse_version(self.default_version)
         logger.info('> Fetching latest datas for %s...' % package)
         package_json_url = '%s/%s/json' % (service_url, package)
         socket.setdefaulttimeout(timeout)
@@ -121,10 +129,13 @@ class VersionsChecker(object):
         results = json.loads(content)
         socket.setdefaulttimeout(None)
         for version in results['releases']:
-            if LooseVersion(version) > LooseVersion(max_version):
+            version = parse_version(version)
+            if version.is_prerelease and not allow_pre_release:
+                continue
+            if version > max_version:
                 max_version = version
         logger.debug('-> Last version of %s is %s.' % (package, max_version))
-        return (package, max_version)
+        return (package, str(max_version))
 
     def find_updates(self, versions, last_versions):
         """
