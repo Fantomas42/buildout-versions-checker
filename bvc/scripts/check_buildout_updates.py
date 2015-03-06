@@ -19,8 +19,9 @@ def cmdline(argv=sys.argv[1:]):
         help='The file where versions are pinned '
         '(default: versions.cfg)')
     parser.add_argument(
-        '-d', '--prerelease', action='store_true', dest='prerelease',
-        default=False, help='Allow pre-release versions')
+        '--pre', action='store_true', dest='prerelease', default=False,
+        help='Allow pre-release and development versions '
+        '(by default only stable versions are found)')
     parser.add_argument(
         '-i', '--include', action='append', dest='includes', default=[],
         help='Include package when checking updates '
