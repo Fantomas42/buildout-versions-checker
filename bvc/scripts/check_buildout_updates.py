@@ -23,6 +23,11 @@ def cmdline(argv=sys.argv[1:]):
         help='Allow pre-release and development versions '
         '(by default only stable versions are found)')
     parser.add_argument(
+        '-s', '--specifier', action='append', dest='specifiers', default=[],
+        help='Describe what versions of a package are acceptable. '
+        'Example "package >=1.0,!=1.3.4.*,< 2.0" '
+        '(can be used multiple times)')
+    parser.add_argument(
         '-i', '--include', action='append', dest='includes', default=[],
         help='Include package when checking updates '
         '(can be used multiple times)')
