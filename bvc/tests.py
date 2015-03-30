@@ -178,16 +178,22 @@ class StdOutTestCase(TestCase):
     def setUp(self):
         self.output = StringIO()
         self.saved_stdout = sys.stdout
+        self.saved_stderr = sys.stderr
         sys.stdout = self.output
+        sys.stderr = self.output
         super(StdOutTestCase, self).setUp()
 
     def tearDown(self):
         sys.stdout = self.saved_stdout
+        sys.stderr = self.saved_stderr
         super(StdOutTestCase, self).tearDown()
 
     def assertStdOut(self, output):
         self.assertEquals(self.output.getvalue(),
                           output)
+
+    def assertInStdOut(self, output):
+        self.assertTrue(output in self.output.getvalue())
 
 
 class VersionsCheckerTestCase(StubbedURLOpenTestCase):
@@ -921,6 +927,34 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "- 1 package updates found.\n"
             "[versions]\n"
             "egg                             = 0.3\n")
+
+    def test_output_max_specifiers(self):
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline('-i egg -s egg:<0.3 -vvv')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut(
+            "'versions' section not found in versions.cfg.\n"
+            "- 1 packages need to be checked for updates.\n"
+            "> Fetching latest datas for egg...\n"
+            "-> Last version of egg<0.3 is 0.2.\n"
+            "=> egg current version (0.0.0) and "
+            "last version (0.2) are different.\n"
+            "- 1 package updates found.\n"
+            "[versions]\n"
+            "egg                             = 0.2\n")
+
+    def test_specifiers_errors(self):
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline('-i egg -s egg<0.3')
+        self.assertEqual(context.exception.code, 2)
+        self.assertInStdOut('error: argument -s/--specifier: '
+                            'key:value syntax not followed')
+
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline('-i egg -s egg:')
+        self.assertEqual(context.exception.code, 2)
+        self.assertInStdOut('error: argument -s/--specifier: '
+                            'key or value are empty')
 
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
