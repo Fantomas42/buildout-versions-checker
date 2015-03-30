@@ -40,8 +40,8 @@ Options
 
 ::
 
-  usage: check-buildout-updates [-h] [--pre] [-i INCLUDES] [-e EXCLUDES] [-w]
-                                [--indent INDENTATION]
+  usage: check-buildout-updates [-h] [--pre] [-s SPECIFIERS] [-i INCLUDES]
+                                [-e EXCLUDES] [-w] [--indent INDENTATION]
                                 [--sorting {alpha,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
                                 [-t THREADS] [-v] [-q]
@@ -57,6 +57,10 @@ Options
     -h, --help            show this help message and exit
     --pre                 Allow pre-release and development versions (by default
                           only stable versions are found)
+    -s SPECIFIERS, --specifier SPECIFIERS
+                          Describe what versions of a package are acceptable.
+                          Example "package:>=1.0,!=1.3.4.*,< 2.0" (can be used
+                          multiple times)
     -i INCLUDES, --include INCLUDES
                           Include package when checking updates (can be used
                           multiple times)
@@ -76,6 +80,7 @@ Options
                           Threads used for checking the versions in parallel
     -v                    Increase verbosity (specify multiple times for more)
     -q                    Decrease verbosity (specify multiple times for more)
+
 
 Buildout integration
 --------------------
