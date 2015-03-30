@@ -55,8 +55,8 @@ Options
 
   optional arguments:
     -h, --help            show this help message and exit
-    --pre                 Allow pre-release and development versions (by default
-                          only stable versions are found)
+    --pre                 Allow pre-releases and development versions (by
+                          default only stable versions are found)
     -s SPECIFIERS, --specifier SPECIFIERS
                           Describe what versions of a package are acceptable.
                           Example "package:>=1.0,!=1.3.4.*,< 2.0" (can be used

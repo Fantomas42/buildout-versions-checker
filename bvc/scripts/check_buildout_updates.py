@@ -39,8 +39,8 @@ def cmdline(argv=sys.argv[1:]):
         help='The file where versions are pinned '
         '(default: versions.cfg)')
     parser.add_argument(
-        '--pre', action='store_true', dest='prerelease', default=False,
-        help='Allow pre-release and development versions '
+        '--pre', action='store_true', dest='prereleases', default=False,
+        help='Allow pre-releases and development versions '
         '(by default only stable versions are found)')
     parser.add_argument(
         '-s', '--specifier', action=StoreSpecifiers,
@@ -101,7 +101,7 @@ def cmdline(argv=sys.argv[1:]):
     try:
         checker = VersionsChecker(
             source,
-            options.prerelease, options.specifiers,
+            options.specifiers, options.prereleases,
             options.includes, options.excludes,
             options.service_url, options.timeout,
             options.threads)

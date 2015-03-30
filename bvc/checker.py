@@ -29,7 +29,7 @@ class VersionsChecker(object):
     default_version = '0.0.0'
 
     def __init__(self, source,
-                 allow_pre_release=False, specifiers={},
+                 specifiers={}, allow_pre_releases=False,
                  includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
                  timeout=10, threads=10):
@@ -41,7 +41,7 @@ class VersionsChecker(object):
         self.includes = includes
         self.excludes = excludes
         self.specifiers = specifiers
-        self.allow_pre_release = allow_pre_release
+        self.allow_pre_releases = allow_pre_releases
         self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
@@ -54,7 +54,7 @@ class VersionsChecker(object):
             self.versions.keys(), self.specifiers)
         self.last_versions = OrderedDict(
             self.fetch_last_versions(self.package_specifiers,
-                                     self.allow_pre_release,
+                                     self.allow_pre_releases,
                                      self.service_url,
                                      self.timeout,
                                      self.threads))
@@ -107,7 +107,7 @@ class VersionsChecker(object):
             specifiers.append((package, specifier))
         return specifiers
 
-    def fetch_last_versions(self, packages, allow_pre_release,
+    def fetch_last_versions(self, packages, allow_pre_releases,
                             service_url, timeout, threads):
         """
         Fetch the latest versions of a list of packages with specifiers,
@@ -118,7 +118,7 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, allow_pre_release,
+                                         package, allow_pre_releases,
                                          service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
@@ -126,16 +126,16 @@ class VersionsChecker(object):
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, allow_pre_release, service_url, timeout))
+                    package, allow_pre_releases, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, allow_pre_release,
+    def fetch_last_version(self, package, allow_pre_releases,
                            service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
         package, specifier = package
-        specifier = SpecifierSet(specifier, allow_pre_release)
+        specifier = SpecifierSet(specifier, allow_pre_releases)
         max_version = parse_version(self.default_version)
         logger.info('> Fetching latest datas for %s...' % package)
         package_json_url = '%s/%s/json' % (service_url, package)
