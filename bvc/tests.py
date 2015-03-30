@@ -246,12 +246,25 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
                 excludes=['Django', 'egg']),
             results)
 
+    def test_build_specifiers(self):
+        self.assertEquals(
+            self.checker.build_specifiers(
+                ('Django', 'zc.buildout'),
+                {'django': '<=1.8',
+                 'extra': '!=1.2'}),
+            [('Django', '<=1.8'), ('zc.buildout', '')])
+
     def test_fetch_last_versions(self):
         self.assertEquals(
             self.checker.fetch_last_versions(
                 [('egg', ''), ('UnknowEgg', '')], False,
                 'service_url', 1, 1),
             [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
+        self.assertEquals(
+            self.checker.fetch_last_versions(
+                [('egg', '<=0.2'), ('UnknowEgg', '>1.0')], False,
+                'service_url', 1, 1),
+            [('egg', '0.2'), ('UnknowEgg', '0.0.0')])
         results = self.checker.fetch_last_versions(
             [('egg', ''), ('UnknowEgg', '')], False,
             'service_url', 1, 2)
@@ -270,6 +283,11 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
                 ('egg', ''), False, 'service_url', 1),
             ('egg', '0.3')
         )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                ('egg', '<0.3'), False, 'service_url', 1),
+            ('egg', '0.2')
+        )
 
     def test_fetch_last_version_with_prereleases(self):
         self.assertEquals(
@@ -280,6 +298,16 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
         self.assertEquals(
             self.checker.fetch_last_version(
                 ('egg-dev', ''), True, 'service_url', 1),
+            ('egg-dev', '1.1b1')
+        )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                ('egg-dev', '<1.1'), True, 'service_url', 1),
+            ('egg-dev', '1.0')
+        )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                ('egg-dev', '<=1.1'), True, 'service_url', 1),
             ('egg-dev', '1.1b1')
         )
 
