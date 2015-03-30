@@ -147,9 +147,9 @@ class VersionsChecker(object):
             logger.debug('!> %s %s' % (package_json_url, error.reason))
         results = json.loads(content)
         socket.setdefaulttimeout(None)
-        for version in results['releases']:
+        for version in specifier.filter(results['releases']):
             version = parse_version(version)
-            if version > max_version and specifier.contains(version):
+            if version > max_version:
                 max_version = version
         logger.debug('-> Last version of %s%s is %s.' % (
             package, specifier, max_version))
