@@ -28,7 +28,7 @@ class VersionsChecker(object):
     default_version = '0.0.0'
 
     def __init__(self, source,
-                 allow_pre_release=False,
+                 allow_pre_release=False, specifiers={},
                  includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
                  timeout=10, threads=10):
@@ -39,10 +39,12 @@ class VersionsChecker(object):
         self.source = source
         self.includes = includes
         self.excludes = excludes
+        self.specifiers = specifiers
+        self.allow_pre_release = allow_pre_release
         self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
-        self.allow_pre_release = allow_pre_release
+
         self.source_versions = OrderedDict(
             self.parse_versions(self.source))
         self.versions = self.include_exclude_versions(
