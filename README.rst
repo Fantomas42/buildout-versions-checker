@@ -81,7 +81,6 @@ Options
     -v                    Increase verbosity (specify multiple times for more)
     -q                    Decrease verbosity (specify multiple times for more)
 
-
 Buildout integration
 --------------------
 
