@@ -50,11 +50,10 @@ class VersionsChecker(object):
             self.parse_versions(self.source))
         self.versions = self.include_exclude_versions(
             self.source_versions, self.includes, self.excludes)
-        self.version_specifiers = self.build_specifiers(
+        self.specifier_versions = self.build_specifiers(
             self.versions.keys(), self.specifiers, self.allow_pre_release)
         self.last_versions = OrderedDict(
-            self.fetch_last_versions(self.versions.keys(),
-                                     self.version_specifiers,
+            self.fetch_last_versions(self.specifier_versions,
                                      self.service_url,
                                      self.timeout,
                                      self.threads))
@@ -96,20 +95,22 @@ class VersionsChecker(object):
         return versions
 
     def build_specifiers(self, packages, source_specifiers,
-                         allow_pre_releases):
-        specifiers = {}
+                         allow_pre_releases=False):
+        """
+        Builds a list of tuple (package, version specifier)
+        """
+        specifiers = []
         source_specifiers = dict((k.lower(), v) for k, v in
                                  source_specifiers.iteritems())
         for package in packages:
             specifier = source_specifiers.get(package.lower(), '')
-            specifiers[package] = SpecifierSet(
-                specifier, prereleases=allow_pre_releases)
+            specifiers.append((package, SpecifierSet(
+                specifier, prereleases=allow_pre_releases)))
         return specifiers
 
-    def fetch_last_versions(self, packages, specifiers,
-                            service_url, timeout, threads):
+    def fetch_last_versions(self, packages, service_url, timeout, threads):
         """
-        Fetch the latest versions of a list of packages,
+        Fetch the latest versions of a list of packages with specifiers,
         in a threaded manner or not.
         """
         versions = []
@@ -117,21 +118,21 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, specifiers[package],
-                                         service_url, timeout)
+                                         package, service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, specifiers[package], service_url, timeout))
+                    package, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, specifier, service_url, timeout):
+    def fetch_last_version(self, package, service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
+        package, specifier = package
         max_version = parse_version(self.default_version)
         logger.info('> Fetching latest datas for %s...' % package)
         package_json_url = '%s/%s/json' % (service_url, package)
@@ -147,7 +148,8 @@ class VersionsChecker(object):
             version = parse_version(version)
             if version > max_version and specifier.contains(version):
                 max_version = version
-        logger.debug('-> Last version of %s is %s.' % (package, max_version))
+        logger.debug('-> Last version of %s%s is %s.' % (
+            package, specifier, max_version))
         return (package, str(max_version))
 
     def find_updates(self, versions, last_versions):
