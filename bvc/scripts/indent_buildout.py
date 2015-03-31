@@ -15,17 +15,19 @@ def cmdline(argv=sys.argv[1:]):
     parser.add_argument(
         'sources', nargs='*',
         help='The buildout files to (re)indent')
-    parser.add_argument(
+    format_group = parser.add_argument_group('Formatting')
+    format_group.add_argument(
         '--indent', dest='indentation', type=int, default=32,
         help='Spaces used when indenting "key = value" (default: 32)')
-    parser.add_argument(
+    format_group.add_argument(
         '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
         help='Sorting algorithm used on the keys when writing source file '
         '(default: None)')
-    parser.add_argument(
+    verbosity_group = parser.add_argument_group('Verbosity')
+    verbosity_group.add_argument(
         '-v', action='count', dest='verbosity', default=1,
         help='Increase verbosity (specify multiple times for more)')
-    parser.add_argument(
+    verbosity_group.add_argument(
         '-q', action='count', dest='quietly', default=0,
         help='Decrease verbosity (specify multiple times for more)')
 

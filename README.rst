@@ -40,8 +40,8 @@ Options
 
 ::
 
-  usage: check-buildout-updates [-h] [--pre] [-i INCLUDES] [-e EXCLUDES] [-w]
-                                [--indent INDENTATION]
+  usage: check-buildout-updates [-h] [--pre] [-s SPECIFIERS] [-i INCLUDES]
+                                [-e EXCLUDES] [-w] [--indent INDENTATION]
                                 [--sorting {alpha,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
                                 [-t THREADS] [-v] [-q]
@@ -55,25 +55,39 @@ Options
 
   optional arguments:
     -h, --help            show this help message and exit
-    --pre                 Allow pre-release and development versions (by default
-                          only stable versions are found)
+
+  Allowed versions:
+    --pre                 Allow pre-releases and development versions (by
+                          default only stable versions are found)
+    -s SPECIFIERS, --specifier SPECIFIERS
+                          Describe what versions of a package are acceptable.
+                          Example "package:>=1.0,!=1.3.4.*,< 2.0" (can be used
+                          multiple times)
+
+  Filtering:
     -i INCLUDES, --include INCLUDES
                           Include package when checking updates (can be used
                           multiple times)
     -e EXCLUDES, --exclude EXCLUDES
                           Exclude package when checking updates (can be used
                           multiple times)
+
+  File:
     -w, --write           Write the updates in the source file
     --indent INDENTATION  Spaces used when indenting "key = value" (default: 32)
     --sorting {alpha,length}
                           Sorting algorithm used on the keys when writing source
                           file (default: None)
+
+  Network:
     --service-url SERVICE_URL
                           The service to use for checking the packages (default:
                           http://pypi.python.org/pypi)
     --timeout TIMEOUT     Timeout for each request (default: 10s)
     -t THREADS, --threads THREADS
                           Threads used for checking the versions in parallel
+
+  Verbosity:
     -v                    Increase verbosity (specify multiple times for more)
     -q                    Decrease verbosity (specify multiple times for more)
 
@@ -90,7 +104,7 @@ automaticly find and write the updates. ::
   recipe                  = zc.recipe.egg
   eggs                    = buildout-versions-checker
   scripts                 = check-buildout-updates=evolve
-  arguments               = '-w --indent 24 buildout.cfg'
+  arguments               = '-w --indent 24 -s django:<1.8 buildout.cfg'
 
 With this part into your buildout, a new script named ``./bin/evolve`` will
 be created. It will check for the available updates of the eggs listed in the

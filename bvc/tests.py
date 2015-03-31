@@ -178,16 +178,22 @@ class StdOutTestCase(TestCase):
     def setUp(self):
         self.output = StringIO()
         self.saved_stdout = sys.stdout
+        self.saved_stderr = sys.stderr
         sys.stdout = self.output
+        sys.stderr = self.output
         super(StdOutTestCase, self).setUp()
 
     def tearDown(self):
         sys.stdout = self.saved_stdout
+        sys.stderr = self.saved_stderr
         super(StdOutTestCase, self).tearDown()
 
     def assertStdOut(self, output):
         self.assertEquals(self.output.getvalue(),
                           output)
+
+    def assertInStdOut(self, output):
+        self.assertTrue(output in self.output.getvalue())
 
 
 class VersionsCheckerTestCase(StubbedURLOpenTestCase):
@@ -246,13 +252,28 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
                 excludes=['Django', 'egg']),
             results)
 
+    def test_build_specifiers(self):
+        self.assertEquals(
+            self.checker.build_specifiers(
+                ('Django', 'zc.buildout'),
+                {'django': '<=1.8',
+                 'extra': '!=1.2'}),
+            [('Django', '<=1.8'), ('zc.buildout', '')])
+
     def test_fetch_last_versions(self):
         self.assertEquals(
             self.checker.fetch_last_versions(
-                ['egg', 'UnknowEgg'], False, 'service_url', 1, 1),
+                [('egg', ''), ('UnknowEgg', '')], False,
+                'service_url', 1, 1),
             [('egg', '0.3'), ('UnknowEgg', '0.0.0')])
+        self.assertEquals(
+            self.checker.fetch_last_versions(
+                [('egg', '<=0.2'), ('UnknowEgg', '>1.0')], False,
+                'service_url', 1, 1),
+            [('egg', '0.2'), ('UnknowEgg', '0.0.0')])
         results = self.checker.fetch_last_versions(
-            ['egg', 'UnknowEgg'], False, 'service_url', 1, 2)
+            [('egg', ''), ('UnknowEgg', '')], False,
+            'service_url', 1, 2)
         self.assertEquals(
             dict(results),
             dict([('egg', '0.3'), ('UnknowEgg', '0.0.0')]))
@@ -260,24 +281,39 @@ class VersionsCheckerTestCase(StubbedURLOpenTestCase):
     def test_fetch_last_version(self):
         self.assertEquals(
             self.checker.fetch_last_version(
-                'UnknowEgg', False, 'service_url', 1),
+                ('UnknowEgg', ''), False, 'service_url', 1),
             ('UnknowEgg', '0.0.0')
         )
         self.assertEquals(
             self.checker.fetch_last_version(
-                'egg', False, 'service_url', 1),
+                ('egg', ''), False, 'service_url', 1),
             ('egg', '0.3')
+        )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                ('egg', '<0.3'), False, 'service_url', 1),
+            ('egg', '0.2')
         )
 
     def test_fetch_last_version_with_prereleases(self):
         self.assertEquals(
             self.checker.fetch_last_version(
-                'egg-dev', False, 'service_url', 1),
+                ('egg-dev', ''), False, 'service_url', 1),
             ('egg-dev', '1.0')
         )
         self.assertEquals(
             self.checker.fetch_last_version(
-                'egg-dev', True, 'service_url', 1),
+                ('egg-dev', ''), True, 'service_url', 1),
+            ('egg-dev', '1.1b1')
+        )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                ('egg-dev', '<1.1'), True, 'service_url', 1),
+            ('egg-dev', '1.0')
+        )
+        self.assertEquals(
+            self.checker.fetch_last_version(
+                ('egg-dev', '<=1.1'), True, 'service_url', 1),
             ('egg-dev', '1.1b1')
         )
 
@@ -891,6 +927,34 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "- 1 package updates found.\n"
             "[versions]\n"
             "egg                             = 0.3\n")
+
+    def test_output_max_specifiers(self):
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline('-i egg -s egg:<0.3 -vvv')
+        self.assertEqual(context.exception.code, 0)
+        self.assertStdOut(
+            "'versions' section not found in versions.cfg.\n"
+            "- 1 packages need to be checked for updates.\n"
+            "> Fetching latest datas for egg...\n"
+            "-> Last version of egg<0.3 is 0.2.\n"
+            "=> egg current version (0.0.0) and "
+            "last version (0.2) are different.\n"
+            "- 1 package updates found.\n"
+            "[versions]\n"
+            "egg                             = 0.2\n")
+
+    def test_specifiers_errors(self):
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline('-i egg -s egg<0.3')
+        self.assertEqual(context.exception.code, 2)
+        self.assertInStdOut('error: argument -s/--specifier: '
+                            'key:value syntax not followed')
+
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline('-i egg -s egg:')
+        self.assertEqual(context.exception.code, 2)
+        self.assertInStdOut('error: argument -s/--specifier: '
+                            'key or value are empty')
 
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
