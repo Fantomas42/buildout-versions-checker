@@ -94,7 +94,7 @@ automaticly find and write the updates. ::
   recipe                  = zc.recipe.egg
   eggs                    = buildout-versions-checker
   scripts                 = check-buildout-updates=evolve
-  arguments               = '-w --indent 24 buildout.cfg'
+  arguments               = '-w --indent 24 -s django:<1.8 buildout.cfg'
 
 With this part into your buildout, a new script named ``./bin/evolve`` will
 be created. It will check for the available updates of the eggs listed in the
