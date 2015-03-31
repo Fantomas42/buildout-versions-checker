@@ -101,7 +101,7 @@ class VersionsChecker(object):
         """
         specifiers = []
         source_specifiers = dict((k.lower(), v) for k, v in
-                                 source_specifiers.iteritems())
+                                 source_specifiers.items())
         for package in packages:
             specifier = source_specifiers.get(package.lower(), '')
             specifiers.append((package, specifier))
