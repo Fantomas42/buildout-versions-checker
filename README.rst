@@ -55,29 +55,39 @@ Options
 
   optional arguments:
     -h, --help            show this help message and exit
+
+  Allowed versions:
     --pre                 Allow pre-releases and development versions (by
                           default only stable versions are found)
     -s SPECIFIERS, --specifier SPECIFIERS
                           Describe what versions of a package are acceptable.
                           Example "package:>=1.0,!=1.3.4.*,< 2.0" (can be used
                           multiple times)
+
+  Filtering:
     -i INCLUDES, --include INCLUDES
                           Include package when checking updates (can be used
                           multiple times)
     -e EXCLUDES, --exclude EXCLUDES
                           Exclude package when checking updates (can be used
                           multiple times)
+
+  File:
     -w, --write           Write the updates in the source file
     --indent INDENTATION  Spaces used when indenting "key = value" (default: 32)
     --sorting {alpha,length}
                           Sorting algorithm used on the keys when writing source
                           file (default: None)
+
+  Network:
     --service-url SERVICE_URL
                           The service to use for checking the packages (default:
                           http://pypi.python.org/pypi)
     --timeout TIMEOUT     Timeout for each request (default: 10s)
     -t THREADS, --threads THREADS
                           Threads used for checking the versions in parallel
+
+  Verbosity:
     -v                    Increase verbosity (specify multiple times for more)
     -q                    Decrease verbosity (specify multiple times for more)
 
