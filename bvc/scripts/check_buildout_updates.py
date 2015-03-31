@@ -2,12 +2,32 @@
 from six import string_types
 
 import sys
+import copy
 import logging
+from argparse import Action
+from argparse import ArgumentError
 from argparse import ArgumentParser
+from argparse import _ensure_value
 
 from bvc.logger import logger
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
+
+
+class StoreSpecifiers(Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        items = copy.copy(_ensure_value(namespace, self.dest, {}))
+        try:
+            key, value = values.split(':')
+        except ValueError:
+            raise ArgumentError(self, 'key:value syntax not followed')
+        key = key.strip()
+        value = value.strip()
+        if not key or not value:
+            raise ArgumentError(self, 'key or value are empty')
+        items.update({key: value})
+        setattr(namespace, self.dest, items)
 
 
 def cmdline(argv=sys.argv[1:]):
@@ -19,9 +39,15 @@ def cmdline(argv=sys.argv[1:]):
         help='The file where versions are pinned '
         '(default: versions.cfg)')
     parser.add_argument(
-        '--pre', action='store_true', dest='prerelease', default=False,
-        help='Allow pre-release and development versions '
+        '--pre', action='store_true', dest='prereleases', default=False,
+        help='Allow pre-releases and development versions '
         '(by default only stable versions are found)')
+    parser.add_argument(
+        '-s', '--specifier', action=StoreSpecifiers,
+        dest='specifiers', default={},
+        help='Describe what versions of a package are acceptable. '
+        'Example "package:>=1.0,!=1.3.4.*,< 2.0" '
+        '(can be used multiple times)')
     parser.add_argument(
         '-i', '--include', action='append', dest='includes', default=[],
         help='Include package when checking updates '
@@ -74,7 +100,8 @@ def cmdline(argv=sys.argv[1:]):
     source = options.source
     try:
         checker = VersionsChecker(
-            source, options.prerelease,
+            source,
+            options.specifiers, options.prereleases,
             options.includes, options.excludes,
             options.service_url, options.timeout,
             options.threads)

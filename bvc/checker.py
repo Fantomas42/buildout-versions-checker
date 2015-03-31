@@ -15,6 +15,7 @@ except ImportError:  # Python 3
     from urllib.request import urlopen
     from configparser import NoSectionError
 
+from packaging.specifiers import SpecifierSet
 from packaging.version import parse as parse_version
 
 from bvc.logger import logger
@@ -28,7 +29,7 @@ class VersionsChecker(object):
     default_version = '0.0.0'
 
     def __init__(self, source,
-                 allow_pre_release=False,
+                 specifiers={}, allow_pre_releases=False,
                  includes=[], excludes=[],
                  service_url='http://pypi.python.org/pypi',
                  timeout=10, threads=10):
@@ -39,17 +40,21 @@ class VersionsChecker(object):
         self.source = source
         self.includes = includes
         self.excludes = excludes
+        self.specifiers = specifiers
+        self.allow_pre_releases = allow_pre_releases
         self.timeout = timeout
         self.threads = threads
         self.service_url = service_url
-        self.allow_pre_release = allow_pre_release
+
         self.source_versions = OrderedDict(
             self.parse_versions(self.source))
         self.versions = self.include_exclude_versions(
             self.source_versions, self.includes, self.excludes)
+        self.package_specifiers = self.build_specifiers(
+            self.versions.keys(), self.specifiers)
         self.last_versions = OrderedDict(
-            self.fetch_last_versions(self.versions.keys(),
-                                     self.allow_pre_release,
+            self.fetch_last_versions(self.package_specifiers,
+                                     self.allow_pre_releases,
                                      self.service_url,
                                      self.timeout,
                                      self.threads))
@@ -90,10 +95,22 @@ class VersionsChecker(object):
                     len(versions))
         return versions
 
-    def fetch_last_versions(self, packages, allow_pre_release,
+    def build_specifiers(self, packages, source_specifiers):
+        """
+        Builds a list of tuple (package, version specifier)
+        """
+        specifiers = []
+        source_specifiers = dict((k.lower(), v) for k, v in
+                                 source_specifiers.items())
+        for package in packages:
+            specifier = source_specifiers.get(package.lower(), '')
+            specifiers.append((package, specifier))
+        return specifiers
+
+    def fetch_last_versions(self, packages, allow_pre_releases,
                             service_url, timeout, threads):
         """
-        Fetch the latest versions of a list of packages,
+        Fetch the latest versions of a list of packages with specifiers,
         in a threaded manner or not.
         """
         versions = []
@@ -101,7 +118,7 @@ class VersionsChecker(object):
             with futures.ThreadPoolExecutor(
                     max_workers=threads) as executor:
                 tasks = [executor.submit(self.fetch_last_version,
-                                         package, allow_pre_release,
+                                         package, allow_pre_releases,
                                          service_url, timeout)
                          for package in packages]
                 for task in futures.as_completed(tasks):
@@ -109,14 +126,16 @@ class VersionsChecker(object):
         else:
             for package in packages:
                 versions.append(self.fetch_last_version(
-                    package, allow_pre_release, service_url, timeout))
+                    package, allow_pre_releases, service_url, timeout))
         return versions
 
-    def fetch_last_version(self, package, allow_pre_release,
+    def fetch_last_version(self, package, allow_pre_releases,
                            service_url, timeout):
         """
         Fetch the last version of a package on Pypi.
         """
+        package, specifier = package
+        specifier = SpecifierSet(specifier, allow_pre_releases)
         max_version = parse_version(self.default_version)
         logger.info('> Fetching latest datas for %s...' % package)
         package_json_url = '%s/%s/json' % (service_url, package)
@@ -128,13 +147,12 @@ class VersionsChecker(object):
             logger.debug('!> %s %s' % (package_json_url, error.reason))
         results = json.loads(content)
         socket.setdefaulttimeout(None)
-        for version in results['releases']:
+        for version in specifier.filter(results['releases']):
             version = parse_version(version)
-            if version.is_prerelease and not allow_pre_release:
-                continue
             if version > max_version:
                 max_version = version
-        logger.debug('-> Last version of %s is %s.' % (package, max_version))
+        logger.debug('-> Last version of %s%s is %s.' % (
+            package, specifier, max_version))
         return (package, str(max_version))
 
     def find_updates(self, versions, last_versions):
