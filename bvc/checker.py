@@ -3,6 +3,7 @@ import os
 import json
 import socket
 
+from concurrent import futures
 from collections import OrderedDict
 try:
     from urllib2 import urlopen
@@ -12,8 +13,6 @@ except ImportError:  # Python 3
     from urllib.error import URLError
     from urllib.request import urlopen
     from configparser import NoSectionError
-
-from concurrent import futures
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import parse as parse_version

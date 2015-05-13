@@ -1,10 +1,11 @@
 """Setup script for bvc"""
 import os
+import sys
 
 from setuptools import setup
 from setuptools import find_packages
 
-__version__ = '1.9.1'
+__version__ = '1.9.2'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
@@ -12,6 +13,10 @@ __email__ = 'fantomas42@gmail.com'
 
 __url__ = 'https://github.com/Fantomas42/buildout-versions-checker'
 
+
+install_requires = ['six', 'packaging']
+if sys.version_info.major == 2:
+    install_requires.append('futures')
 
 setup(
     name='buildout-versions-checker',
@@ -39,9 +44,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
-    install_requires=['six',
-                      'futures',
-                      'packaging'],
+    install_requires=install_requires,
     entry_points={
         'console_scripts': [
             'indent-buildout=bvc.scripts.indent_buildout:cmdline',
