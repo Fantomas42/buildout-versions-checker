@@ -120,7 +120,7 @@ Requirements
 ------------
 
 * six >= 1.4.1
-* futures >= 2.1.4
+* futures >= 3.0.2
 
 Extras
 ------
