@@ -53,9 +53,9 @@ def cmdline(argv=sys.argv[1:]):
         config_readed = config.read(source)
         if config_readed:
             config.write(source, options.indentation, options.sorting)
-            logger.warning('- %s (re)indented at %s spaces.' % (
-                source, options.indentation))
+            logger.warning('- %s (re)indented at %s spaces.',
+                           source, options.indentation)
         else:
-            logger.warning('- %s cannot be read.' % source)
+            logger.warning('- %s cannot be read.', source)
 
     sys.exit(0)

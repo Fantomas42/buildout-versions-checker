@@ -6,6 +6,7 @@ import json
 from logging import Handler
 from collections import OrderedDict
 from tempfile import NamedTemporaryFile
+from io import BytesIO
 try:
     from urllib2 import URLError
     from cStringIO import StringIO
@@ -66,9 +67,14 @@ class URLOpener(object):
     def __call__(self, url):
         package = url.split('/')[-2]
         try:
-            return StringIO(json.dumps(self.results[package]))
+            json_payload = json.dumps(self.results[package])
         except KeyError:
             raise URLError('404')
+
+        try:
+            return BytesIO(bytes(json_payload, 'utf-8'))
+        except TypeError:  # Python 2
+            return StringIO(json_payload)
 
 
 class StubbedURLOpenTestCase(TestCase):

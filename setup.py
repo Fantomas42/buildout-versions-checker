@@ -5,7 +5,7 @@ import sys
 from setuptools import setup
 from setuptools import find_packages
 
-__version__ = '1.9.2'
+__version__ = '1.9.3'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
@@ -41,6 +41,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'License :: OSI Approved :: BSD License',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'],
