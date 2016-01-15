@@ -118,9 +118,9 @@ def cmdline(argv=sys.argv[1:]):
 
     logger.warning('[versions]')
     for package, version in checker.updates.items():
-        logger.warning('%s= %s' % (
-            package.ljust(options.indentation), version))
-
+        logger.warning('%s= %s',
+                       package.ljust(options.indentation),
+                       version)
     if options.write:
         config = VersionsConfigParser()
         config.read(source)
@@ -130,6 +130,6 @@ def cmdline(argv=sys.argv[1:]):
             config.set('versions', package, version)
 
         config.write(source, options.indentation, options.sorting)
-        logger.info('- %s updated.' % source)
+        logger.info('- %s updated.', source)
 
     sys.exit(0)

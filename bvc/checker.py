@@ -70,9 +70,9 @@ class VersionsChecker(object):
         try:
             versions = config.items('versions')
         except NoSectionError:
-            logger.debug("'versions' section not found in %s." % source)
+            logger.debug("'versions' section not found in %s.", source)
             return []
-        logger.info('- %d versions found in %s.' % (len(versions), source))
+        logger.info('- %d versions found in %s.', len(versions), source)
         return versions
 
     def include_exclude_versions(self, source_versions,
@@ -90,7 +90,7 @@ class VersionsChecker(object):
         for package in versions.keys():
             if package.lower() in excludes_lower:
                 del versions[package]
-        logger.info('- %d packages need to be checked for updates.' %
+        logger.info('- %d packages need to be checked for updates.',
                     len(versions))
         return versions
 
@@ -136,22 +136,22 @@ class VersionsChecker(object):
         package, specifier = package
         specifier = SpecifierSet(specifier, allow_pre_releases)
         max_version = parse_version(self.default_version)
-        logger.info('> Fetching latest datas for %s...' % package)
+        logger.info('> Fetching latest datas for %s...', package)
         package_json_url = '%s/%s/json' % (service_url, package)
         socket.setdefaulttimeout(timeout)
         try:
             content = urlopen(package_json_url).read().decode('utf-8')
         except URLError as error:
             content = '{"releases": []}'
-            logger.debug('!> %s %s' % (package_json_url, error.reason))
+            logger.debug('!> %s %s', package_json_url, error.reason)
         results = json.loads(content)
         socket.setdefaulttimeout(None)
         for version in specifier.filter(results['releases']):
             version = parse_version(version)
             if version > max_version:
                 max_version = version
-        logger.debug('-> Last version of %s%s is %s.' % (
-            package, specifier, max_version))
+        logger.debug('-> Last version of %s%s is %s.',
+                     package, specifier, max_version)
         return (package, str(max_version))
 
     def find_updates(self, versions, last_versions):
@@ -165,10 +165,10 @@ class VersionsChecker(object):
             if last_version != current_version:
                 logger.debug(
                     '=> %s current version (%s) and last '
-                    'version (%s) are different.' %
-                    (package, current_version, last_version))
+                    'version (%s) are different.',
+                    package, current_version, last_version)
                 updates.append((package, last_version))
-        logger.info('- %d package updates found.' % len(updates))
+        logger.info('- %d package updates found.', len(updates))
         return updates
 
 
