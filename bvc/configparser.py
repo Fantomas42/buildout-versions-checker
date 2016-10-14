@@ -1,5 +1,7 @@
 """Config parser for Buildout Versions Checker"""
 import re
+
+from itertools import chain
 from operator import itemgetter
 try:
     from ConfigParser import RawConfigParser
@@ -59,14 +61,28 @@ class VersionsConfigParser(RawConfigParser):
 
         fd.write(string_section.encode('utf-8'))
 
-    def write(self, source, indentation=32, sorting=None):
+    def write(self, source, indentation=-1, sorting=None):
         """
         Write an .ini-format representation of the
         configuration state with a readable indentation.
         """
+        if indentation < 0:
+            indentation = self.perfect_indentation
+
         with open(source, 'wb') as fd:
             sections = list(self._sections.keys())
             for section in sections[:-1]:
                 self.write_section(fd, section, indentation, sorting)
                 fd.write('\n'.encode('utf-8'))
             self.write_section(fd, sections[-1], indentation, sorting)
+
+    @property
+    def perfect_indentation(self, rounding=4):
+        """
+        Find the perfect indentation required for writing
+        the file, by iterating over the different options.
+        """
+        max_option_length = max(
+            [len(option) for option in chain(
+                *[self.options(section) for section in self.sections()])])
+        return max_option_length + (rounding - (max_option_length % rounding))

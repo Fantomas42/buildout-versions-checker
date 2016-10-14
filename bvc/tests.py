@@ -364,6 +364,17 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(config_parser.options('Section'), ['KEY', 'Key'])
         config_file.close()
 
+    def test_perfect_indentation(self):
+        config_parser = VersionsConfigParser()
+        config_parser.add_section('Section')
+        config_parser.set('Section', 'Option', 'Value')
+        self.assertEquals(config_parser.perfect_indentation, 8)
+        config_parser.set('Section', 'Option-long', None)
+        self.assertEquals(config_parser.perfect_indentation, 12)
+        config_parser.add_section('Section long')
+        config_parser.set('Section long', 'Option-super-long', None)
+        self.assertEquals(config_parser.perfect_indentation, 20)
+
     def test_write_section(self):
         config_file = NamedTemporaryFile()
         config_parser = VersionsConfigParser()
@@ -453,15 +464,15 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section 1]\n'
-            'Option                          = Value\n'
-            'Option-void                     = \n'
-            'Option-add                     += Value added\n'
+            'Option              = Value\n'
+            'Option-void         = \n'
+            'Option-add         += Value added\n'
             '\n'
             '[Section 2]\n'
-            'Option-multiline                = Value1\n'
-            '                                  Value2\n'
-            '<=                                Value1\n'
-            '                                  Value2\n')
+            'Option-multiline    = Value1\n'
+            '                      Value2\n'
+            '<=                    Value1\n'
+            '                      Value2\n')
         config_file.close()
 
     def test_write_alpha_sorting(self):
@@ -474,7 +485,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section 1', 'Option-add+', 'Value added')
         config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
         config_parser.set('Section 2', '<', 'Value1\nValue2')
-        config_parser.write(config_file.name, sorting='alpha')
+        config_parser.write(config_file.name, indentation=32, sorting='alpha')
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
