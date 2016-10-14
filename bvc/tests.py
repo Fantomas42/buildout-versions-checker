@@ -166,7 +166,8 @@ class LogsTestCase(TestCase):
         logger.removeHandler(self.logs)
         super(LogsTestCase, self).tearDown()
 
-    def assertLogs(self, debug=[], info=[], warning=[],  # noqa
+    def assertLogs(self,  # noqa
+                   debug=[], info=[], warning=[],
                    error=[], critical=[]):
         expected = {'debug': debug, 'info': info,
                     'warning': warning, 'error': error,
