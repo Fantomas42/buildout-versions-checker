@@ -8,7 +8,7 @@ install:
     - python bootstrap.py
     - ./bin/buildout
 before_script:
-    - ./bin/flake8 bvc
+    - ./bin/flake8 --application-import-names bvc bvc/
 script:
     - ./bin/cover
 after_success:

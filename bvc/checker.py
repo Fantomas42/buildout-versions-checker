@@ -1,24 +1,24 @@
 """Version checker for Buildout Versions Checker"""
-import os
 import json
+import os
 import socket
 
-from concurrent import futures
 from collections import OrderedDict
+from concurrent import futures
 try:
-    from urllib2 import urlopen
-    from urllib2 import URLError
     from ConfigParser import NoSectionError
+    from urllib2 import URLError
+    from urllib2 import urlopen
 except ImportError:  # Python 3
+    from configparser import NoSectionError
     from urllib.error import URLError
     from urllib.request import urlopen
-    from configparser import NoSectionError
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import parse as parse_version
 
-from bvc.logger import logger
 from bvc.configparser import VersionsConfigParser
+from bvc.logger import logger
 
 
 class VersionsChecker(object):

@@ -1,12 +1,13 @@
 """Command line for (re)indenting buildout files"""
-from six import string_types
-
-import sys
 import logging
+import sys
+
 from argparse import ArgumentParser
 
-from bvc.logger import logger
+from six import string_types
+
 from bvc.configparser import VersionsConfigParser
+from bvc.logger import logger
 
 
 def cmdline(argv=sys.argv[1:]):

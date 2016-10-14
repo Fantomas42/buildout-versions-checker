@@ -2,8 +2,8 @@
 import os
 import sys
 
-from setuptools import setup
 from setuptools import find_packages
+from setuptools import setup
 
 __version__ = '1.9.3'
 __license__ = 'BSD License'

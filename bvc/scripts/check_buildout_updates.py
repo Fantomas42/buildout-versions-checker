@@ -1,17 +1,18 @@
 """Command line for Buildout Versions Checker"""
-from six import string_types
-
-import sys
 import copy
 import logging
+import sys
+
 from argparse import Action
 from argparse import ArgumentError
 from argparse import ArgumentParser
 from argparse import _ensure_value
 
-from bvc.logger import logger
+from six import string_types
+
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
+from bvc.logger import logger
 
 
 class StoreSpecifiers(Action):

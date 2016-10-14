@@ -1,31 +1,31 @@
 """Tests for Buildout version checker"""
+import json
 import os
 import sys
-import json
 
-from logging import Handler
 from collections import OrderedDict
-from tempfile import NamedTemporaryFile
 from io import BytesIO
+from logging import Handler
+from tempfile import NamedTemporaryFile
 try:
-    from urllib2 import URLError
     from cStringIO import StringIO
+    from urllib2 import URLError
 except ImportError:  # Python 3
     from io import StringIO
     from urllib.error import URLError
 
 from unittest import TestCase
-from unittest import TestSuite
 from unittest import TestLoader
+from unittest import TestSuite
 
 from bvc import checker
-from bvc.logger import logger
-from bvc.checker import VersionsChecker
 from bvc.checker import UnusedVersionsChecker
-from bvc.scripts import indent_buildout
-from bvc.scripts import find_unused_versions
-from bvc.scripts import check_buildout_updates
+from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
+from bvc.logger import logger
+from bvc.scripts import check_buildout_updates
+from bvc.scripts import find_unused_versions
+from bvc.scripts import indent_buildout
 
 
 class LazyVersionsChecker(VersionsChecker):
@@ -166,7 +166,7 @@ class LogsTestCase(TestCase):
         logger.removeHandler(self.logs)
         super(LogsTestCase, self).tearDown()
 
-    def assertLogs(self, debug=[], info=[], warning=[],
+    def assertLogs(self, debug=[], info=[], warning=[],  # noqa
                    error=[], critical=[]):
         expected = {'debug': debug, 'info': info,
                     'warning': warning, 'error': error,
@@ -194,11 +194,11 @@ class StdOutTestCase(TestCase):
         sys.stderr = self.saved_stderr
         super(StdOutTestCase, self).tearDown()
 
-    def assertStdOut(self, output):
+    def assertStdOut(self, output):  # noqa
         self.assertEquals(self.output.getvalue(),
                           output)
 
-    def assertInStdOut(self, output):
+    def assertInStdOut(self, output):  # noqa
         self.assertTrue(output in self.output.getvalue())
 
 
