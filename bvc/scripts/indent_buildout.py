@@ -18,8 +18,8 @@ def cmdline(argv=sys.argv[1:]):
         help='The buildout files to (re)indent')
     format_group = parser.add_argument_group('Formatting')
     format_group.add_argument(
-        '--indent', dest='indentation', type=int, default=32,
-        help='Spaces used when indenting "key = value" (default: 32)')
+        '--indent', dest='indentation', type=int, default=-1,
+        help='Spaces used when indenting "key = value" (default: auto)')
     format_group.add_argument(
         '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
         help='Sorting algorithm used on the keys when writing source file '

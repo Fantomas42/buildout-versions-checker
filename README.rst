@@ -74,7 +74,8 @@ Options
 
   File:
     -w, --write           Write the updates in the source file
-    --indent INDENTATION  Spaces used when indenting "key = value" (default: 32)
+    --indent INDENTATION  Spaces used when indenting "key = value" (default:
+                          auto)
     --sorting {alpha,length}
                           Sorting algorithm used on the keys when writing source
                           file (default: None)
