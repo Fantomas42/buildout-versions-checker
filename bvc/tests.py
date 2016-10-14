@@ -661,7 +661,25 @@ class FindUnusedVersionsTestCase(LogsTestCase,
         self.assertStdOut('- Unused-egg is unused.\n')
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\nEgg                             = 1.0\n')
+            '[versions]\nEgg = 1.0\n')
+
+    def test_write_indentation(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[versions]\nEgg=1.0\n'
+                          'Unused-egg=1.0\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            find_unused_versions.cmdline('%s -w --indent 8' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            info=['- 2 versions found in %s.' % config_file.name,
+                  '- 2 packages need to be checked for updates.',
+                  '- %s updated.' % config_file.name],
+            warning=['- Unused-egg is unused.'])
+        self.assertStdOut('- Unused-egg is unused.\n')
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[versions]\nEgg     = 1.0\n')
 
     def test_no_source(self):
         with self.assertRaises(SystemExit) as context:
@@ -743,13 +761,30 @@ class IndentCommandLineTestCase(LogsTestCase,
             indent_buildout.cmdline('%s' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            warning=['- %s (re)indented at 32 spaces.' % config_file.name])
+            warning=['- %s (re)indented at 4 spaces.' % config_file.name])
         self.assertStdOut(
-            '- %s (re)indented at 32 spaces.\n' % config_file.name)
+            '- %s (re)indented at 4 spaces.\n' % config_file.name)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[sections]\n'
-            'Key                             = Value\n')
+            'Key = Value\n')
+        config_file.close()
+
+    def test_indentation(self):
+        config_file = NamedTemporaryFile()
+        config_file.write('[sections]\nKey=Value\n'.encode('utf-8'))
+        config_file.seek(0)
+        with self.assertRaises(SystemExit) as context:
+            indent_buildout.cmdline('%s --indent 8' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        self.assertLogs(
+            warning=['- %s (re)indented at 8 spaces.' % config_file.name])
+        self.assertStdOut(
+            '- %s (re)indented at 8 spaces.\n' % config_file.name)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[sections]\n'
+            'Key     = Value\n')
         config_file.close()
 
     def test_invalid_source(self):
@@ -767,10 +802,10 @@ class IndentCommandLineTestCase(LogsTestCase,
             indent_buildout.cmdline('%s invalid.cfg' % config_file.name)
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            warning=['- %s (re)indented at 32 spaces.' % config_file.name,
+            warning=['- %s (re)indented at 4 spaces.' % config_file.name,
                      '- invalid.cfg cannot be read.'])
         self.assertStdOut(
-            '- %s (re)indented at 32 spaces.\n'
+            '- %s (re)indented at 4 spaces.\n'
             '- invalid.cfg cannot be read.\n' % config_file.name)
 
     def test_no_source(self):
@@ -820,10 +855,10 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
                   '> Fetching latest datas for egg...',
                   '- 1 package updates found.'],
             warning=['[versions]',
-                     'egg                             = 0.3'])
+                     'egg = 0.3'])
         self.assertStdOut(
             '[versions]\n'
-            'egg                             = 0.3\n')
+            'egg = 0.3\n')
 
     def test_include_unavailable(self):
         with self.assertRaises(SystemExit) as context:
@@ -857,9 +892,22 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\negg                             = 0.3\n')
+            '[versions]\negg = 0.3\n')
         self.assertStdOut(
-            '[versions]\negg                             = 0.3\n')
+            '[versions]\negg = 0.3\n')
+
+    def test_write_include_in_blank_with_indentation(self):
+        config_file = NamedTemporaryFile()
+        with self.assertRaises(SystemExit) as context:
+            check_buildout_updates.cmdline(
+                '-i egg --indent 8 -w %s' % config_file.name)
+        self.assertEqual(context.exception.code, 0)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[versions]\negg     = 0.3\n')
+        self.assertStdOut(
+            '[versions]\negg = 0.3\n')
 
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()
@@ -881,18 +929,18 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
                   '- 1 package updates found.',
                   '- %s updated.' % config_file.name],
             warning=['[versions]',
-                     'egg                             = 0.3'])
+                     'egg = 0.3'])
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[buildout]\n'
-            'develop                         = .\n\n'
+            'develop     = .\n\n'
             '[versions]\n'
-            'excluded                        = 1.0\n'
-            'egg                             = 0.3\n')
+            'excluded    = 1.0\n'
+            'egg         = 0.3\n')
         self.assertStdOut(
             '[versions]\n'
-            'egg                             = 0.3\n')
+            'egg = 0.3\n')
 
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
@@ -900,7 +948,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '[versions]\n'
-            'egg                             = 0.3\n')
+            'egg = 0.3\n')
 
     def test_output_with_plus_and_minus(self):
         with self.assertRaises(SystemExit) as context:
@@ -908,7 +956,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
             '[versions]\n'
-            'egg                             = 0.3\n')
+            'egg = 0.3\n')
 
     def test_output_none(self):
         with self.assertRaises(SystemExit) as context:
@@ -929,7 +977,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             '> Fetching latest datas for egg...\n'
             '- 1 package updates found.\n'
             '[versions]\n'
-            'egg                             = 0.3\n')
+            'egg = 0.3\n')
 
     def test_output_max(self):
         with self.assertRaises(SystemExit) as context:
@@ -944,7 +992,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "last version (0.3) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg                             = 0.3\n")
+            "egg = 0.3\n")
 
     def test_output_max_specifiers(self):
         with self.assertRaises(SystemExit) as context:
@@ -959,7 +1007,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "last version (0.2) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg                             = 0.2\n")
+            "egg = 0.2\n")
 
     def test_specifiers_errors(self):
         with self.assertRaises(SystemExit) as context:
