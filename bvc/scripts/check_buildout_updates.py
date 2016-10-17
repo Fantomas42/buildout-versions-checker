@@ -12,6 +12,7 @@ from six import string_types
 
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
+from bvc.indentation import perfect_indentation
 from bvc.logger import logger
 
 
@@ -64,8 +65,8 @@ def cmdline(argv=sys.argv[1:]):
         '-w', '--write', action='store_true', dest='write', default=False,
         help='Write the updates in the source file')
     file_group.add_argument(
-        '--indent', dest='indentation', type=int, default=32,
-        help='Spaces used when indenting "key = value" (default: 32)')
+        '--indent', dest='indentation', type=int, default=-1,
+        help='Spaces used when indenting "key = value" (default: auto)')
     file_group.add_argument(
         '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
         help='Sorting algorithm used on the keys when writing source file '
@@ -117,20 +118,24 @@ def cmdline(argv=sys.argv[1:]):
     if not checker.updates:
         sys.exit(0)
 
+    indentation = options.indentation
+    if indentation < 0:
+        indentation = perfect_indentation(checker.updates.keys())
     logger.warning('[versions]')
     for package, version in checker.updates.items():
-        logger.warning('%s= %s',
-                       package.ljust(options.indentation),
-                       version)
+        logger.warning('%s= %s', package.ljust(indentation), version)
+
     if options.write:
-        config = VersionsConfigParser()
+        config = VersionsConfigParser(
+            indentation=options.indentation,
+            sorting=options.sorting)
         config.read(source)
         if not config.has_section('versions'):
             config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
 
-        config.write(source, options.indentation, options.sorting)
+        config.write(source)
         logger.info('- %s updated.', source)
 
     sys.exit(0)

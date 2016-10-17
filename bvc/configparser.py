@@ -1,10 +1,14 @@
 """Config parser for Buildout Versions Checker"""
 import re
+
+from itertools import chain
 from operator import itemgetter
 try:
     from ConfigParser import RawConfigParser
 except ImportError:  # Python 3
     from configparser import RawConfigParser
+
+from bvc.indentation import perfect_indentation
 
 OPERATORS = re.compile(r'[+-]$')
 
@@ -15,6 +19,11 @@ class VersionsConfigParser(RawConfigParser):
     beautiful buildout files.
     """
     optionxform = str
+
+    def __init__(self, *args, **kwargs):
+        self.sorting = kwargs.pop('sorting', None)
+        self.indentation = kwargs.pop('indentation', -1)
+        RawConfigParser.__init__(self, *args, **kwargs)
 
     def alpha_sorter(self, items):
         return sorted(items, key=itemgetter(0))
@@ -59,14 +68,29 @@ class VersionsConfigParser(RawConfigParser):
 
         fd.write(string_section.encode('utf-8'))
 
-    def write(self, source, indentation=32, sorting=None):
+    def write(self, source):
         """
         Write an .ini-format representation of the
         configuration state with a readable indentation.
         """
+        if self.indentation < 0:
+            self.indentation = self.perfect_indentation
+
         with open(source, 'wb') as fd:
             sections = list(self._sections.keys())
             for section in sections[:-1]:
-                self.write_section(fd, section, indentation, sorting)
+                self.write_section(fd, section,
+                                   self.indentation, self.sorting)
                 fd.write('\n'.encode('utf-8'))
-            self.write_section(fd, sections[-1], indentation, sorting)
+            self.write_section(fd, sections[-1],
+                               self.indentation, self.sorting)
+
+    @property
+    def perfect_indentation(self, rounding=4):
+        """
+        Find the perfect indentation required for writing
+        the file, by iterating over the different options.
+        """
+        return perfect_indentation(
+            chain(*[self.options(section) for section in self.sections()])
+        )

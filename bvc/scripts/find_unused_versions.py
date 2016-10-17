@@ -32,8 +32,8 @@ def cmdline(argv=sys.argv[1:]):
         '-w', '--write', action='store_true', dest='write', default=False,
         help='Write the updates in the source file')
     file_group.add_argument(
-        '--indent', dest='indentation', type=int, default=32,
-        help='Spaces used when indenting "key = value" (default: 32)')
+        '--indent', dest='indentation', type=int, default=-1,
+        help='Spaces used when indenting "key = value" (default: auto)')
     file_group.add_argument(
         '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
         help='Sorting algorithm used on the keys when writing source file '
@@ -73,12 +73,14 @@ def cmdline(argv=sys.argv[1:]):
         logger.warning('- %s is unused.', package)
 
     if options.write:
-        config = VersionsConfigParser()
+        config = VersionsConfigParser(
+            indentation=options.indentation,
+            sorting=options.sorting)
         config.read(source)
         for package in checker.unused:
             config.remove_option('versions', package)
 
-        config.write(source, options.indentation, options.sorting)
+        config.write(source)
         logger.info('- %s updated.', source)
 
     sys.exit(0)
