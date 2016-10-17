@@ -941,7 +941,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             config_file.read().decode('utf-8'),
             '[versions]\negg     = 0.3\n')
         self.assertStdOut(
-            '[versions]\negg = 0.3\n')
+            '[versions]\negg     = 0.3\n')
 
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()

@@ -12,6 +12,7 @@ from six import string_types
 
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
+from bvc.indentation import perfect_indentation
 from bvc.logger import logger
 
 
@@ -117,11 +118,13 @@ def cmdline(argv=sys.argv[1:]):
     if not checker.updates:
         sys.exit(0)
 
+    indentation = options.indentation
+    if indentation < 0:
+        indentation = perfect_indentation(checker.updates.keys())
     logger.warning('[versions]')
     for package, version in checker.updates.items():
-        logger.warning('%s= %s',
-                       package.ljust(options.indentation),
-                       version)
+        logger.warning('%s= %s', package.ljust(indentation), version)
+
     if options.write:
         config = VersionsConfigParser(
             indentation=options.indentation,

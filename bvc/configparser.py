@@ -8,6 +8,8 @@ try:
 except ImportError:  # Python 3
     from configparser import RawConfigParser
 
+from bvc.indentation import perfect_indentation
+
 OPERATORS = re.compile(r'[+-]$')
 
 
@@ -89,7 +91,6 @@ class VersionsConfigParser(RawConfigParser):
         Find the perfect indentation required for writing
         the file, by iterating over the different options.
         """
-        max_option_length = max(
-            [len(option) for option in chain(
-                *[self.options(section) for section in self.sections()])])
-        return max_option_length + (rounding - (max_option_length % rounding))
+        return perfect_indentation(
+            chain(*[self.options(section) for section in self.sections()])
+        )
