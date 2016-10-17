@@ -122,6 +122,7 @@ Requirements
 
 * six >= 1.4.1
 * futures >= 3.0.2
+* packaging >= 16
 
 Extras
 ------
