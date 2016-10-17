@@ -73,12 +73,14 @@ def cmdline(argv=sys.argv[1:]):
         logger.warning('- %s is unused.', package)
 
     if options.write:
-        config = VersionsConfigParser()
+        config = VersionsConfigParser(
+            indentation=options.indentation,
+            sorting=options.sorting)
         config.read(source)
         for package in checker.unused:
             config.remove_option('versions', package)
 
-        config.write(source, options.indentation, options.sorting)
+        config.write(source)
         logger.info('- %s updated.', source)
 
     sys.exit(0)

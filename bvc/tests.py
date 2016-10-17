@@ -477,7 +477,7 @@ class VersionsConfigParserTestCase(TestCase):
 
     def test_write_alpha_sorting(self):
         config_file = NamedTemporaryFile()
-        config_parser = VersionsConfigParser()
+        config_parser = VersionsConfigParser(indentation=32, sorting='alpha')
         config_parser.add_section('Section 1')
         config_parser.add_section('Section 2')
         config_parser.set('Section 1', 'Option', 'Value')
@@ -485,7 +485,7 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section 1', 'Option-add+', 'Value added')
         config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
         config_parser.set('Section 2', '<', 'Value1\nValue2')
-        config_parser.write(config_file.name, indentation=32, sorting='alpha')
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -503,13 +503,13 @@ class VersionsConfigParserTestCase(TestCase):
 
     def test_write_low_indentation(self):
         config_file = NamedTemporaryFile()
-        config_parser = VersionsConfigParser()
+        config_parser = VersionsConfigParser(indentation=12)
         config_parser.add_section('Section 1')
         config_parser.add_section('Section 2')
         config_parser.set('Section 1', 'Option', 'Value')
         config_parser.set('Section 1', 'Option-void', None)
         config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
-        config_parser.write(config_file.name, 12)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -530,13 +530,13 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
         config_file.seek(0)
-        config_parser.write(config_file.name, 24)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
-            'Ad                     += dition\n'
-            'Sub                    -= straction\n')
+            'Ad     += dition\n'
+            'Sub    -= straction\n')
         config_file.close()
 
     def test_parse_and_write_buildout_operators_offset(self):
@@ -547,7 +547,24 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
         config_file.seek(0)
-        config_parser.write(config_file.name, 24)
+        config_parser.write(config_file.name)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            'Ad     += dition\n'
+            'Sub    -= straction\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_operators_offset_with_indentation(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\nAd  +=dition\nSub - = straction'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser(indentation=24)
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -564,13 +581,13 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
         config_file.seek(0)
-        config_parser.write(config_file.name, 24)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
-            'Add                    += Multi\n'
-            '                          Lines\n')
+            'Add    += Multi\n'
+            '          Lines\n')
         config_file.close()
 
     def test_parse_and_write_buildout_macros(self):
@@ -581,13 +598,13 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
         config_file.seek(0)
-        config_parser.write(config_file.name, 24)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section]\n'
-            '<=                        Macro\n'
-            '                          Template\n')
+            '<=    Macro\n'
+            '      Template\n')
         config_file.close()
 
     def test_parse_and_write_buildout_macros_offset(self):
@@ -598,7 +615,24 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
         config_file.seek(0)
-        config_parser.write(config_file.name, 24)
+        config_parser.write(config_file.name)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section]\n'
+            '<=    Macro\n'
+            '      Template\n')
+        config_file.close()
+
+    def test_parse_and_write_buildout_macros_offset_with_indentation(self):
+        config_file = NamedTemporaryFile()
+        config_file.write(
+            '[Section]\n<  = Macro\n  Template'.encode('utf-8'))
+        config_file.seek(0)
+        config_parser = VersionsConfigParser(indentation=24)
+        config_parser.read(config_file.name)
+        config_file.seek(0)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -614,12 +648,12 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser = VersionsConfigParser()
         config_parser.read(config_file.name)
         config_file.seek(0)
-        config_parser.write(config_file.name, 24)
+        config_parser.write(config_file.name)
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section:Condition]\n'
-            'Key                     = Value\n')
+            'Key = Value\n')
         config_file.close()
 
 

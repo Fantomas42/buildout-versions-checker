@@ -50,12 +50,14 @@ def cmdline(argv=sys.argv[1:]):
         sys.exit(0)
 
     for source in options.sources:
-        config = VersionsConfigParser()
+        config = VersionsConfigParser(
+            indentation=options.indentation,
+            sorting=options.sorting)
         config_readed = config.read(source)
         if config_readed:
-            config.write(source, options.indentation, options.sorting)
+            config.write(source)
             logger.warning('- %s (re)indented at %s spaces.',
-                           source, options.indentation)
+                           source, config.indentation)
         else:
             logger.warning('- %s cannot be read.', source)
 

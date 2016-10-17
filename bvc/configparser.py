@@ -18,6 +18,11 @@ class VersionsConfigParser(RawConfigParser):
     """
     optionxform = str
 
+    def __init__(self, *args, **kwargs):
+        self.sorting = kwargs.pop('sorting', None)
+        self.indentation = kwargs.pop('indentation', -1)
+        RawConfigParser.__init__(self, *args, **kwargs)
+
     def alpha_sorter(self, items):
         return sorted(items, key=itemgetter(0))
 
@@ -61,20 +66,22 @@ class VersionsConfigParser(RawConfigParser):
 
         fd.write(string_section.encode('utf-8'))
 
-    def write(self, source, indentation=-1, sorting=None):
+    def write(self, source):
         """
         Write an .ini-format representation of the
         configuration state with a readable indentation.
         """
-        if indentation < 0:
-            indentation = self.perfect_indentation
+        if self.indentation < 0:
+            self.indentation = self.perfect_indentation
 
         with open(source, 'wb') as fd:
             sections = list(self._sections.keys())
             for section in sections[:-1]:
-                self.write_section(fd, section, indentation, sorting)
+                self.write_section(fd, section,
+                                   self.indentation, self.sorting)
                 fd.write('\n'.encode('utf-8'))
-            self.write_section(fd, sections[-1], indentation, sorting)
+            self.write_section(fd, sections[-1],
+                               self.indentation, self.sorting)
 
     @property
     def perfect_indentation(self, rounding=4):

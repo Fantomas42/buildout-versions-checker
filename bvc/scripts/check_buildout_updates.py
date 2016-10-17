@@ -123,14 +123,16 @@ def cmdline(argv=sys.argv[1:]):
                        package.ljust(options.indentation),
                        version)
     if options.write:
-        config = VersionsConfigParser()
+        config = VersionsConfigParser(
+            indentation=options.indentation,
+            sorting=options.sorting)
         config.read(source)
         if not config.has_section('versions'):
             config.add_section('versions')
         for package, version in checker.updates.items():
             config.set('versions', package, version)
 
-        config.write(source, options.indentation, options.sorting)
+        config.write(source)
         logger.info('- %s updated.', source)
 
     sys.exit(0)
