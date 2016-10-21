@@ -35,7 +35,8 @@ def cmdline(argv=sys.argv[1:]):
         '--indent', dest='indentation', type=int, default=-1,
         help='Spaces used when indenting "key = value" (default: auto)')
     file_group.add_argument(
-        '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
+        '--sorting', dest='sorting', default='',
+        choices=['alpha', 'ascii', 'length'],
         help='Sorting algorithm used on the keys when writing source file '
         '(default: None)')
     verbosity_group = parser.add_argument_group('Verbosity')

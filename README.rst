@@ -42,7 +42,7 @@ Options
 
   usage: check-buildout-updates [-h] [--pre] [-s SPECIFIERS] [-i INCLUDES]
                                 [-e EXCLUDES] [-w] [--indent INDENTATION]
-                                [--sorting {alpha,length}]
+                                [--sorting {alpha,ascii,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
                                 [-t THREADS] [-v] [-q]
                                 [source]
@@ -76,7 +76,7 @@ Options
     -w, --write           Write the updates in the source file
     --indent INDENTATION  Spaces used when indenting "key = value" (default:
                           auto)
-    --sorting {alpha,length}
+    --sorting {alpha,ascii,length}
                           Sorting algorithm used on the keys when writing source
                           file (default: None)
 
