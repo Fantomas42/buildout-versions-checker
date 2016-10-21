@@ -2,7 +2,6 @@
 import re
 
 from itertools import chain
-from operator import itemgetter
 try:
     from ConfigParser import RawConfigParser
 except ImportError:  # Python 3
@@ -25,8 +24,11 @@ class VersionsConfigParser(RawConfigParser):
         self.indentation = kwargs.pop('indentation', -1)
         RawConfigParser.__init__(self, *args, **kwargs)
 
+    def ascii_sorter(self, items):
+        return sorted(items, key=lambda x: x[0])
+
     def alpha_sorter(self, items):
-        return sorted(items, key=itemgetter(0))
+        return sorted(items, key=lambda x: x[0].lower())
 
     def length_sorter(self, items):
         return sorted(self.alpha_sorter(items),
