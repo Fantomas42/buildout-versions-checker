@@ -487,19 +487,18 @@ class VersionsConfigParserTestCase(TestCase):
         config_parser.set('Section 2', '<', 'Value1\nValue2')
         config_parser.write(config_file.name)
         config_file.seek(0)
-        # TODO, this is unsure
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section 1]\n'
-            'Option              = Value\n'
-            'Option-void         = \n'
-            'Option-add         += Value added\n'
+            'Option= Value\n'
+            'Option-void= \n'
+            'Option-add+= Value added\n'
             '\n'
             '[Section 2]\n'
-            'Option-multiline    = Value1\n'
-            '                      Value2\n'
-            '<=                    Value1\n'
-            '                      Value2\n')
+            'Option-multiline= Value1\n'
+            '  Value2\n'
+            '<= Value1\n'
+            '  Value2\n')
         config_file.close()
 
     def test_write_alpha_sorting(self):
