@@ -63,7 +63,7 @@ class VersionsConfigParser(RawConfigParser):
             else:
                 key = '{key:<{indent}}{operator}'.format(
                     key=key, operator=operator,
-                    indent=indentation - int(bool(operator)))
+                    indent=max(indentation - int(bool(operator)), 0))
             value = value.replace('\n', '{:<{indent}}'.format(
                 '\n', indent=indentation + 3))
             string_section += '{key}= {value}\n'.format(key=key, value=value)

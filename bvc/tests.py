@@ -545,6 +545,32 @@ class VersionsConfigParserTestCase(TestCase):
             '                                  Value2\n')
         config_file.close()
 
+    def test_write_indentation_zero(self):
+        config_file = NamedTemporaryFile()
+        config_parser = VersionsConfigParser(indentation=0)
+        config_parser.add_section('Section 1')
+        config_parser.add_section('Section 2')
+        config_parser.set('Section 1', 'Option', 'Value')
+        config_parser.set('Section 1', 'Option-void', None)
+        config_parser.set('Section 1', 'Option-add+', 'Value added')
+        config_parser.set('Section 2', 'Option-multiline', 'Value1\nValue2')
+        config_parser.set('Section 2', '<', 'Value1\nValue2')
+        config_parser.write(config_file.name)
+        config_file.seek(0)
+        self.assertEquals(
+            config_file.read().decode('utf-8'),
+            '[Section 1]\n'
+            'Option= Value\n'
+            'Option-void= \n'
+            'Option-add+= Value added\n'
+            '\n'
+            '[Section 2]\n'
+            'Option-multiline= Value1\n'
+            '  Value2\n'
+            '<= Value1\n'
+            '  Value2\n')
+        config_file.close()
+
     def test_write_low_indentation(self):
         config_file = NamedTemporaryFile()
         config_parser = VersionsConfigParser(indentation=12)
