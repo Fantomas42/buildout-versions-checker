@@ -66,7 +66,9 @@ class VersionsConfigParser(RawConfigParser):
                     indent=max(indentation - int(bool(operator)), 0))
             value = value.replace('\n', '{:<{indent}}'.format(
                 '\n', indent=indentation + 3))
-            string_section += '{key}= {value}\n'.format(key=key, value=value)
+            string_section += '{key}{operator:<{indent}}{value}\n'.format(
+                key=key, operator='=', value=value,
+                indent=int(bool(indentation)) + 1)
 
         fd.write(string_section.encode('utf-8'))
 

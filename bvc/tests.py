@@ -560,14 +560,14 @@ class VersionsConfigParserTestCase(TestCase):
         self.assertEquals(
             config_file.read().decode('utf-8'),
             '[Section 1]\n'
-            'Option= Value\n'
-            'Option-void= \n'
-            'Option-add+= Value added\n'
+            'Option=Value\n'
+            'Option-void=\n'
+            'Option-add+=Value added\n'
             '\n'
             '[Section 2]\n'
-            'Option-multiline= Value1\n'
+            'Option-multiline=Value1\n'
             '  Value2\n'
-            '<= Value1\n'
+            '<=Value1\n'
             '  Value2\n')
         config_file.close()
 
