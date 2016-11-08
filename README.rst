@@ -42,7 +42,7 @@ Options
 
   usage: check-buildout-updates [-h] [--pre] [-s SPECIFIERS] [-i INCLUDES]
                                 [-e EXCLUDES] [-w] [--indent INDENTATION]
-                                [--sorting {alpha,length}]
+                                [--sorting {alpha,ascii,length}]
                                 [--service-url SERVICE_URL] [--timeout TIMEOUT]
                                 [-t THREADS] [-v] [-q]
                                 [source]
@@ -74,8 +74,9 @@ Options
 
   File:
     -w, --write           Write the updates in the source file
-    --indent INDENTATION  Spaces used when indenting "key = value" (default: 32)
-    --sorting {alpha,length}
+    --indent INDENTATION  Spaces used when indenting "key = value" (default:
+                          auto)
+    --sorting {alpha,ascii,length}
                           Sorting algorithm used on the keys when writing source
                           file (default: None)
 
@@ -114,13 +115,14 @@ Python compatibility
 --------------------
 
 Buildout-versions-checker has been originally developed for Python 2.7, but
-has been ported and tested for Python 3.2, 3.3 and 3.4.
+has been ported and tested for Python 3.3 and 3.4.
 
 Requirements
 ------------
 
 * six >= 1.4.1
 * futures >= 3.0.2
+* packaging >= 16
 
 Extras
 ------

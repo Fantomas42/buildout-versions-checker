@@ -1,12 +1,13 @@
 """Command line for (re)indenting buildout files"""
-from six import string_types
-
-import sys
 import logging
+import sys
+
 from argparse import ArgumentParser
 
-from bvc.logger import logger
+from six import string_types
+
 from bvc.configparser import VersionsConfigParser
+from bvc.logger import logger
 
 
 def cmdline(argv=sys.argv[1:]):
@@ -17,10 +18,11 @@ def cmdline(argv=sys.argv[1:]):
         help='The buildout files to (re)indent')
     format_group = parser.add_argument_group('Formatting')
     format_group.add_argument(
-        '--indent', dest='indentation', type=int, default=32,
-        help='Spaces used when indenting "key = value" (default: 32)')
+        '--indent', dest='indentation', type=int, default=-1,
+        help='Spaces used when indenting "key = value" (default: auto)')
     format_group.add_argument(
-        '--sorting', dest='sorting', default='', choices=['alpha', 'length'],
+        '--sorting', dest='sorting', default='',
+        choices=['alpha', 'ascii', 'length'],
         help='Sorting algorithm used on the keys when writing source file '
         '(default: None)')
     verbosity_group = parser.add_argument_group('Verbosity')
@@ -49,12 +51,14 @@ def cmdline(argv=sys.argv[1:]):
         sys.exit(0)
 
     for source in options.sources:
-        config = VersionsConfigParser()
+        config = VersionsConfigParser(
+            indentation=options.indentation,
+            sorting=options.sorting)
         config_readed = config.read(source)
         if config_readed:
-            config.write(source, options.indentation, options.sorting)
+            config.write(source)
             logger.warning('- %s (re)indented at %s spaces.',
-                           source, options.indentation)
+                           source, config.indentation)
         else:
             logger.warning('- %s cannot be read.', source)
 
