@@ -5,7 +5,7 @@ python:
     - 3.4
 install:
     - pip install -U setuptools zc.buildout
-    - ./bin/buildout
+    - buildout
 before_script:
     - ./bin/flake8 --application-import-names bvc bvc/
 script:
