@@ -1,4 +1,6 @@
-"""Version checker for Buildout Versions Checker"""
+"""
+Version checker for Buildout Versions Checker
+"""
 import json
 import os
 import socket
@@ -46,19 +48,25 @@ class VersionsChecker(object):
         self.service_url = service_url
 
         self.source_versions = OrderedDict(
-            self.parse_versions(self.source))
+            self.parse_versions(self.source)
+        )
         self.versions = self.include_exclude_versions(
-            self.source_versions, self.includes, self.excludes)
+            self.source_versions, self.includes, self.excludes
+        )
         self.package_specifiers = self.build_specifiers(
-            self.versions.keys(), self.specifiers)
+            self.versions.keys(), self.specifiers
+        )
         self.last_versions = OrderedDict(
-            self.fetch_last_versions(self.package_specifiers,
-                                     self.allow_pre_releases,
-                                     self.service_url,
-                                     self.timeout,
-                                     self.threads))
+            self.fetch_last_versions(
+                self.package_specifiers,
+                self.allow_pre_releases,
+                self.service_url,
+                self.timeout,
+                self.threads)
+        )
         self.updates = OrderedDict(self.find_updates(
-            self.versions, self.last_versions))
+            self.versions, self.last_versions)
+        )
 
     def parse_versions(self, source):
         """
@@ -67,12 +75,21 @@ class VersionsChecker(object):
         """
         config = VersionsConfigParser()
         config.read(source)
+
         try:
             versions = config.items('versions')
         except NoSectionError:
-            logger.debug("'versions' section not found in %s.", source)
+            logger.debug(
+                "'versions' section not found in %s.",
+                source
+            )
             return []
-        logger.info('- %d versions found in %s.', len(versions), source)
+
+        logger.info(
+            '- %d versions found in %s.',
+            len(versions), source
+        )
+
         return versions
 
     def include_exclude_versions(self, source_versions,
@@ -83,15 +100,21 @@ class VersionsChecker(object):
         """
         versions = source_versions.copy()
         packages_lower = [x.lower() for x in versions.keys()]
+        excludes_lower = [x.lower() for x in excludes]
+
         for include in includes:
             if include.lower() not in packages_lower:
                 versions[include] = self.default_version
-        excludes_lower = [x.lower() for x in excludes]
+
         for package in versions.keys():
             if package.lower() in excludes_lower:
                 del versions[package]
-        logger.info('- %d packages need to be checked for updates.',
-                    len(versions))
+
+        logger.info(
+            '- %d packages need to be checked for updates.',
+            len(versions)
+        )
+
         return versions
 
     def build_specifiers(self, packages, source_specifiers):
@@ -99,11 +122,17 @@ class VersionsChecker(object):
         Builds a list of tuple (package, version specifier)
         """
         specifiers = []
-        source_specifiers = dict((k.lower(), v) for k, v in
-                                 source_specifiers.items())
+        source_specifiers = dict(
+            (k.lower(), v) for k, v in
+            source_specifiers.items()
+        )
+
         for package in packages:
-            specifier = source_specifiers.get(package.lower(), '')
+            specifier = source_specifiers.get(
+                package.lower(), ''
+            )
             specifiers.append((package, specifier))
+
         return specifiers
 
     def fetch_last_versions(self, packages, allow_pre_releases,
@@ -113,19 +142,34 @@ class VersionsChecker(object):
         in a threaded manner or not.
         """
         versions = []
+
         if threads > 1:
             with futures.ThreadPoolExecutor(
-                    max_workers=threads) as executor:
-                tasks = [executor.submit(self.fetch_last_version,
-                                         package, allow_pre_releases,
-                                         service_url, timeout)
-                         for package in packages]
+                    max_workers=threads
+            ) as executor:
+                tasks = [
+                    executor.submit(
+                        self.fetch_last_version,
+                        package,
+                        allow_pre_releases,
+                        service_url,
+                        timeout
+                    )
+                    for package in packages
+                ]
                 for task in futures.as_completed(tasks):
                     versions.append(task.result())
         else:
             for package in packages:
-                versions.append(self.fetch_last_version(
-                    package, allow_pre_releases, service_url, timeout))
+                versions.append(
+                    self.fetch_last_version(
+                        package,
+                        allow_pre_releases,
+                        service_url,
+                        timeout
+                    )
+                )
+
         return versions
 
     def fetch_last_version(self, package, allow_pre_releases,
@@ -136,8 +180,9 @@ class VersionsChecker(object):
         package, specifier = package
         specifier = SpecifierSet(specifier, allow_pre_releases)
         max_version = parse_version(self.default_version)
-        logger.info('> Fetching latest datas for %s...', package)
         package_json_url = '%s/%s/json' % (service_url, package)
+
+        logger.info('> Fetching latest datas for %s...', package)
         socket.setdefaulttimeout(timeout)
         try:
             content = urlopen(package_json_url).read().decode('utf-8')
@@ -146,12 +191,17 @@ class VersionsChecker(object):
             logger.debug('!> %s %s', package_json_url, error.reason)
         results = json.loads(content)
         socket.setdefaulttimeout(None)
+
         for version in specifier.filter(results['releases']):
             version = parse_version(version)
             if version > max_version:
                 max_version = version
-        logger.debug('-> Last version of %s%s is %s.',
-                     package, specifier, max_version)
+
+        logger.debug(
+            '-> Last version of %s%s is %s.',
+            package, specifier, max_version
+        )
+
         return (package, str(max_version))
 
     def find_updates(self, versions, last_versions):
@@ -160,15 +210,21 @@ class VersionsChecker(object):
         with the last versions to find updates.
         """
         updates = []
+
         for package, current_version in versions.items():
             last_version = last_versions[package]
             if last_version != current_version:
                 logger.debug(
                     '=> %s current version (%s) and last '
                     'version (%s) are different.',
-                    package, current_version, last_version)
-                updates.append((package, last_version))
+                    package, current_version, last_version
+                )
+                updates.append(
+                    (package, last_version)
+                )
+
         logger.info('- %d package updates found.', len(updates))
+
         return updates
 
 
@@ -185,20 +241,30 @@ class UnusedVersionsChecker(VersionsChecker):
         self.source = source
         self.excludes = excludes
         self.egg_directory = egg_directory
+
         self.source_versions = OrderedDict(
-            self.parse_versions(self.source))
+            self.parse_versions(self.source)
+        )
         self.versions = self.include_exclude_versions(
-            self.source_versions, excludes=self.excludes)
-        self.used_versions = self.get_used_versions(self.egg_directory)
+            self.source_versions, excludes=self.excludes
+        )
+        self.used_versions = self.get_used_versions(
+            self.egg_directory
+        )
         self.unused = self.find_unused_versions(
-            self.versions.keys(), self.used_versions)
+            self.versions.keys(),
+            self.used_versions
+        )
 
     def get_used_versions(self, egg_directory):
         """
         Walk into the egg_directory to know the packages installed.
         """
-        return [egg.split('-')[0] for egg in os.listdir(egg_directory)
-                if egg.endswith('.egg')]
+        return [
+            egg.split('-')[0]
+            for egg in os.listdir(egg_directory)
+            if egg.endswith('.egg')
+        ]
 
     def find_unused_versions(self, versions, used_versions):
         """
@@ -207,7 +273,9 @@ class UnusedVersionsChecker(VersionsChecker):
         """
         unused = list(versions)
         used_version_lower = [x.lower() for x in used_versions]
+
         for version in versions:
             if version.lower().replace('-', '_') in used_version_lower:
                 unused.remove(version)
+
         return unused
