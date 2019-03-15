@@ -2,21 +2,20 @@
 import json
 import os
 import sys
-
 from collections import OrderedDict
 from io import BytesIO
 from logging import Handler
 from tempfile import NamedTemporaryFile
+from unittest import TestCase
+from unittest import TestLoader
+from unittest import TestSuite
+
 try:
     from cStringIO import StringIO
     from urllib2 import URLError
 except ImportError:  # Python 3
     from io import StringIO
     from urllib.error import URLError
-
-from unittest import TestCase
-from unittest import TestLoader
-from unittest import TestSuite
 
 from bvc import checker
 from bvc.checker import UnusedVersionsChecker

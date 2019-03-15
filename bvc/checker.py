@@ -2,9 +2,9 @@
 import json
 import os
 import socket
-
 from collections import OrderedDict
 from concurrent import futures
+
 try:
     from ConfigParser import NoSectionError
     from urllib2 import URLError
@@ -14,11 +14,11 @@ except ImportError:  # Python 3
     from urllib.error import URLError
     from urllib.request import urlopen
 
-from packaging.specifiers import SpecifierSet
-from packaging.version import parse as parse_version
-
 from bvc.configparser import VersionsConfigParser
 from bvc.logger import logger
+
+from packaging.specifiers import SpecifierSet
+from packaging.version import parse as parse_version
 
 
 class VersionsChecker(object):

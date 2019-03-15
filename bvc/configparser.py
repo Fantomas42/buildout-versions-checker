@@ -1,7 +1,7 @@
 """Config parser for Buildout Versions Checker"""
 import re
-
 from itertools import chain
+
 try:
     from ConfigParser import RawConfigParser
 except ImportError:  # Python 3
