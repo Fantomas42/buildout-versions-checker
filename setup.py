@@ -33,7 +33,10 @@ setup(
     license=__license__,
     platforms='any',
     description='Checks egg updates in your Buildout configurations.',
-    long_description=open(os.path.join('README.rst')).read(),
+    long_description=open(
+        os.path.join('README.rst')
+    ).read(),
+
     keywords='buildout, versions, updates',
     classifiers=[
         'Framework :: Buildout',
@@ -44,7 +47,9 @@ setup(
         'Programming Language :: Python :: 3.4',
         'License :: OSI Approved :: BSD License',
         'Topic :: Software Development :: Build Tools',
-        'Topic :: Software Development :: Libraries :: Python Modules'],
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ],
+
     install_requires=install_requires,
     entry_points={
         'console_scripts': [
@@ -53,5 +58,6 @@ setup(
             'check-buildout-updates=bvc.scripts.check_buildout_updates:cmdline'
         ]
     },
+
     test_suite='bvc.tests.test_suite',
 )
