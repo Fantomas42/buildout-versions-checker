@@ -83,7 +83,7 @@ Options
   Network:
     --service-url SERVICE_URL
                           The service to use for checking the packages (default:
-                          http://pypi.python.org/pypi)
+                          https://pypi.python.org/pypi)
     --timeout TIMEOUT     Timeout for each request (default: 10s)
     -t THREADS, --threads THREADS
                           Threads used for checking the versions in parallel

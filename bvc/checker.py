@@ -30,7 +30,7 @@ class VersionsChecker(object):
     def __init__(self, source,
                  specifiers={}, allow_pre_releases=False,
                  includes=[], excludes=[],
-                 service_url='http://pypi.python.org/pypi',
+                 service_url='https://pypi.python.org/pypi',
                  timeout=10, threads=10):
         """
         Parses a config file containing pinned versions

@@ -75,9 +75,9 @@ def cmdline(argv=sys.argv[1:]):
     network_group = parser.add_argument_group('Network')
     network_group.add_argument(
         '--service-url',  dest='service_url',
-        default='http://pypi.python.org/pypi',
+        default='https://pypi.python.org/pypi',
         help='The service to use for checking the packages '
-        '(default: http://pypi.python.org/pypi)')
+        '(default: https://pypi.python.org/pypi)')
     network_group.add_argument(
         '--timeout', dest='timeout', type=int, default=10,
         help='Timeout for each request (default: 10s)')
