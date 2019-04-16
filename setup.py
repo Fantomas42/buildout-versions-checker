@@ -5,7 +5,7 @@ import sys
 from setuptools import find_packages
 from setuptools import setup
 
-__version__ = '1.9.4'
+__version__ = '1.9.5'
 __license__ = 'BSD License'
 
 __author__ = 'Fantomas42'
