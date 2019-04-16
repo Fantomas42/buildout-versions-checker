@@ -1,5 +1,6 @@
 """Config parser for Buildout Versions Checker"""
 import re
+import sys
 from itertools import chain
 
 try:
@@ -12,7 +13,7 @@ from bvc.indentation import perfect_indentation
 OPERATORS = re.compile(r'[+-]$')
 
 
-class VersionsConfigParser(RawConfigParser):
+class VersionsConfigParser(RawConfigParser, object):
     """
     ConfigParser customized to read and write
     beautiful buildout files.
@@ -23,7 +24,15 @@ class VersionsConfigParser(RawConfigParser):
         self.sorting = kwargs.pop('sorting', None)
         self.indentation = kwargs.pop('indentation', -1)
 
-        RawConfigParser.__init__(self, *args, **kwargs)
+        super(VersionsConfigParser, self).__init__(*args, **kwargs)
+
+    def read(self, filenames):
+        rode = super(VersionsConfigParser, self).read(filenames)
+
+        if not rode:
+            sys.exit('Cannot read %s' % filenames)
+
+        return rode
 
     def ascii_sorter(self, items):
         return sorted(
