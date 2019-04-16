@@ -2,21 +2,20 @@
 import json
 import os
 import sys
-
 from collections import OrderedDict
 from io import BytesIO
 from logging import Handler
 from tempfile import NamedTemporaryFile
+from unittest import TestCase
+from unittest import TestLoader
+from unittest import TestSuite
+
 try:
     from cStringIO import StringIO
     from urllib2 import URLError
 except ImportError:  # Python 3
     from io import StringIO
     from urllib.error import URLError
-
-from unittest import TestCase
-from unittest import TestLoader
-from unittest import TestSuite
 
 from bvc import checker
 from bvc.checker import UnusedVersionsChecker
@@ -970,7 +969,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
             debug=["'versions' section not found in versions.cfg.",
-                   '!> http://pypi.python.org/pypi/unavailable/json 404',
+                   '!> https://pypi.python.org/pypi/unavailable/json 404',
                    '-> Last version of unavailable is 0.0.0.'],
             info=['- 1 packages need to be checked for updates.',
                   '> Fetching latest datas for unavailable...',
@@ -1129,8 +1128,11 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i error-egg')
-        self.assertEqual(context.exception.code,
-                         "list indices must be integers, not str")
+        self.assertTrue(
+            context.exception.code.startswith(
+                'list indices must be integers'
+            )
+        )
 
 
 loader = TestLoader()

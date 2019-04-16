@@ -1,14 +1,14 @@
 language: python
 python:
     - 2.7
-    - 3.3
     - 3.4
+    - 3.5
+    - 3.6
 install:
-    - pip install -U setuptools
-    - python bootstrap.py
-    - ./bin/buildout
+    - pip install -U setuptools zc.buildout
+    - buildout
 before_script:
-    - ./bin/flake8 --application-import-names bvc bvc/
+    - ./bin/flake8 bvc/
 script:
     - ./bin/cover
 after_success:
