@@ -1128,8 +1128,11 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
     def test_handle_error(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i error-egg')
-        self.assertEqual(context.exception.code,
-                         "list indices must be integers, not str")
+        self.assertTrue(
+            context.exception.code.startswith(
+                'list indices must be integers'
+            )
+        )
 
 
 loader = TestLoader()

@@ -106,7 +106,7 @@ class VersionsChecker(object):
             if include.lower() not in packages_lower:
                 versions[include] = self.default_version
 
-        for package in versions.keys():
+        for package in list(versions.keys()):
             if package.lower() in excludes_lower:
                 del versions[package]
 
