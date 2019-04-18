@@ -1,6 +1,5 @@
 """Config parser for Buildout Versions Checker"""
 import re
-import sys
 from itertools import chain
 
 try:
@@ -25,14 +24,6 @@ class VersionsConfigParser(RawConfigParser, object):
         self.indentation = kwargs.pop('indentation', -1)
 
         super(VersionsConfigParser, self).__init__(*args, **kwargs)
-
-    def read(self, filenames):
-        rode = super(VersionsConfigParser, self).read(filenames)
-
-        if not rode:
-            sys.exit('Cannot read %s' % filenames)
-
-        return rode
 
     def ascii_sorter(self, items):
         return sorted(

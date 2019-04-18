@@ -74,7 +74,11 @@ class VersionsChecker(object):
         with their current versions.
         """
         config = VersionsConfigParser()
-        config.read(source)
+        has_read = config.read(source)
+
+        if not has_read:
+            logger.warning("'%s' cannot be read.", source)
+            return []
 
         try:
             versions = config.items('versions')
