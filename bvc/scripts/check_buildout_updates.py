@@ -190,9 +190,10 @@ def cmdline(argv=sys.argv[1:]):
     logger.warning('[versions]')
     for package, version in checker.updates.items():
         logger.warning(
-            '%s= %s',
+            '%s= %s %s',
             package.ljust(indentation),
-            version
+            version,
+            ('#  %s' % checker.versions[package]).rjust(15)
         )
 
     if options.write:
