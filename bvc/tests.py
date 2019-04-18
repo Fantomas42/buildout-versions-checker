@@ -959,12 +959,12 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
                   '- 1 package updates found.'],
             warning=["'versions.cfg' cannot be read.",
                      '[versions]',
-                     'egg = 0.3']
+                     'egg = 0.3        #  0.0.0']
         )
         self.assertStdOut(
             "'versions.cfg' cannot be read.\n"
             "[versions]\n"
-            "egg = 0.3\n"
+            "egg = 0.3        #  0.0.0\n"
         )
 
     def test_include_unavailable(self):
@@ -1001,9 +1001,11 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\negg = 0.3\n')
+            '[versions]\negg = 0.3\n'
+        )
         self.assertStdOut(
-            '[versions]\negg = 0.3\n')
+            '[versions]\negg = 0.3        #  0.0.0\n'
+        )
 
     def test_write_include_in_blank_with_indentation(self):
         config_file = NamedTemporaryFile()
@@ -1014,9 +1016,11 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\negg     = 0.3\n')
+            '[versions]\negg     = 0.3\n'
+        )
         self.assertStdOut(
-            '[versions]\negg     = 0.3\n')
+            '[versions]\negg     = 0.3        #  0.0.0\n'
+        )
 
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()
@@ -1038,7 +1042,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
                   '- 1 package updates found.',
                   '- %s updated.' % config_file.name],
             warning=['[versions]',
-                     'egg = 0.3'])
+                     'egg = 0.3          #  0.1'])
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -1049,7 +1053,8 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             'egg         = 0.3\n')
         self.assertStdOut(
             '[versions]\n'
-            'egg = 0.3\n')
+            'egg = 0.3          #  0.1\n'
+        )
 
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
@@ -1058,7 +1063,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         self.assertStdOut(
             "'versions.cfg' cannot be read.\n"
             "[versions]\n"
-            "egg = 0.3\n"
+            "egg = 0.3        #  0.0.0\n"
         )
 
     def test_output_with_plus_and_minus(self):
@@ -1068,7 +1073,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         self.assertStdOut(
             "'versions.cfg' cannot be read.\n"
             "[versions]\n"
-            "egg = 0.3\n"
+            "egg = 0.3        #  0.0.0\n"
         )
 
     def test_output_none(self):
@@ -1091,7 +1096,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "> Fetching latest datas for egg...\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg = 0.3\n"
+            "egg = 0.3        #  0.0.0\n"
         )
 
     def test_output_max(self):
@@ -1107,7 +1112,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "last version (0.3) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg = 0.3\n"
+            "egg = 0.3        #  0.0.0\n"
         )
 
     def test_output_max_specifiers(self):
@@ -1123,7 +1128,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "last version (0.2) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg = 0.2\n"
+            "egg = 0.2        #  0.0.0\n"
         )
 
     def test_specifiers_errors(self):
