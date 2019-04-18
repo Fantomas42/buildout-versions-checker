@@ -62,10 +62,13 @@ class VersionsChecker(object):
                 self.allow_pre_releases,
                 self.service_url,
                 self.timeout,
-                self.threads)
+                self.threads
+            )
         )
-        self.updates = OrderedDict(self.find_updates(
-            self.versions, self.last_versions)
+        self.updates = OrderedDict(
+            self.find_updates(
+                self.versions, self.last_versions
+            )
         )
 
     def parse_versions(self, source):
