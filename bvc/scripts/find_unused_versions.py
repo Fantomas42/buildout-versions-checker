@@ -7,8 +7,6 @@ from bvc.checker import UnusedVersionsChecker
 from bvc.configparser import VersionsConfigParser
 from bvc.logger import logger
 
-from six import string_types
-
 
 def cmdline(argv=sys.argv[1:]):
     parser = ArgumentParser(
@@ -79,7 +77,7 @@ def cmdline(argv=sys.argv[1:]):
         help='Decrease verbosity (specify multiple times for more)'
     )
 
-    if isinstance(argv, string_types):
+    if isinstance(argv, str):
         argv = argv.split()
     options = parser.parse_args(argv)
 

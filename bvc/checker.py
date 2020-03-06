@@ -6,15 +6,9 @@ import os
 import socket
 from collections import OrderedDict
 from concurrent import futures
-
-try:
-    from ConfigParser import NoSectionError
-    from urllib2 import URLError
-    from urllib2 import urlopen
-except ImportError:  # Python 3
-    from configparser import NoSectionError
-    from urllib.error import URLError
-    from urllib.request import urlopen
+from configparser import NoSectionError
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from bvc.configparser import VersionsConfigParser
 from bvc.logger import logger
@@ -62,10 +56,13 @@ class VersionsChecker(object):
                 self.allow_pre_releases,
                 self.service_url,
                 self.timeout,
-                self.threads)
+                self.threads
+            )
         )
-        self.updates = OrderedDict(self.find_updates(
-            self.versions, self.last_versions)
+        self.updates = OrderedDict(
+            self.find_updates(
+                self.versions, self.last_versions
+            )
         )
 
     def parse_versions(self, source):
@@ -74,7 +71,11 @@ class VersionsChecker(object):
         with their current versions.
         """
         config = VersionsConfigParser()
-        config.read(source)
+        has_read = config.read(source)
+
+        if not has_read:
+            logger.warning("'%s' cannot be read.", source)
+            return []
 
         try:
             versions = config.items('versions')

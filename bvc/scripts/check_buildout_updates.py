@@ -1,24 +1,22 @@
 """Command line for Buildout Versions Checker"""
-import copy
 import logging
 import sys
 from argparse import Action
 from argparse import ArgumentError
 from argparse import ArgumentParser
-from argparse import _ensure_value
+from argparse import _copy_items
 
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
 from bvc.indentation import perfect_indentation
 from bvc.logger import logger
 
-from six import string_types
-
 
 class StoreSpecifiers(Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        items = copy.copy(_ensure_value(namespace, self.dest, {}))
+        items = getattr(namespace, self.dest, None)
+        items = _copy_items(items)
 
         try:
             key, value = values.split(':')
@@ -148,7 +146,7 @@ def cmdline(argv=sys.argv[1:]):
         help='Decrease verbosity (specify multiple times for more)'
     )
 
-    if isinstance(argv, string_types):
+    if isinstance(argv, str):
         argv = argv.split()
     options = parser.parse_args(argv)
 
@@ -190,9 +188,10 @@ def cmdline(argv=sys.argv[1:]):
     logger.warning('[versions]')
     for package, version in checker.updates.items():
         logger.warning(
-            '%s= %s',
+            '%s= %s %s',
             package.ljust(indentation),
-            version
+            version,
+            ('#  %s' % checker.versions[package]).rjust(15)
         )
 
     if options.write:

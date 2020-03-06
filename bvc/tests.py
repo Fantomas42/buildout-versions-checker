@@ -4,18 +4,13 @@ import os
 import sys
 from collections import OrderedDict
 from io import BytesIO
+from io import StringIO
 from logging import Handler
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 from unittest import TestLoader
 from unittest import TestSuite
-
-try:
-    from cStringIO import StringIO
-    from urllib2 import URLError
-except ImportError:  # Python 3
-    from io import StringIO
-    from urllib.error import URLError
+from urllib.error import URLError
 
 from bvc import checker
 from bvc.checker import UnusedVersionsChecker
@@ -70,10 +65,7 @@ class URLOpener(object):
         except KeyError:
             raise URLError('404')
 
-        try:
-            return BytesIO(bytes(json_payload, 'utf-8'))
-        except TypeError:  # Python 2
-            return StringIO(json_payload)
+        return BytesIO(bytes(json_payload, 'utf-8'))
 
 
 class StubbedURLOpenTestCase(TestCase):
@@ -789,9 +781,9 @@ class FindUnusedVersionsTestCase(LogsTestCase,
             find_unused_versions.cmdline('')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            debug=["'versions' section not found in versions.cfg."],
+            warning=["'versions.cfg' cannot be read."],
             info=['- 0 packages need to be checked for updates.'])
-        self.assertStdOut('')
+        self.assertStdOut("'versions.cfg' cannot be read.\n")
 
     def test_exclude(self):
         config_file = NamedTemporaryFile()
@@ -940,51 +932,57 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             check_buildout_updates.cmdline('')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            debug=["'versions' section not found in versions.cfg."],
+            warning=["'versions.cfg' cannot be read."],
             info=['- 0 packages need to be checked for updates.',
-                  '- 0 package updates found.'])
-        self.assertStdOut('')
+                  '- 0 package updates found.']
+        )
+        self.assertStdOut("'versions.cfg' cannot be read.\n")
 
     def test_include_no_source(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            debug=["'versions' section not found in versions.cfg.",
-                   '-> Last version of egg is 0.3.',
+            debug=['-> Last version of egg is 0.3.',
                    '=> egg current version (0.0.0) and '
                    'last version (0.3) are different.'],
             info=['- 1 packages need to be checked for updates.',
                   '> Fetching latest datas for egg...',
                   '- 1 package updates found.'],
-            warning=['[versions]',
-                     'egg = 0.3'])
+            warning=["'versions.cfg' cannot be read.",
+                     '[versions]',
+                     'egg = 0.3        #  0.0.0']
+        )
         self.assertStdOut(
-            '[versions]\n'
-            'egg = 0.3\n')
+            "'versions.cfg' cannot be read.\n"
+            "[versions]\n"
+            "egg = 0.3        #  0.0.0\n"
+        )
 
     def test_include_unavailable(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i unavailable')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            debug=["'versions' section not found in versions.cfg.",
-                   '!> https://pypi.python.org/pypi/unavailable/json 404',
+            warning=["'versions.cfg' cannot be read."],
+            debug=['!> https://pypi.python.org/pypi/unavailable/json 404',
                    '-> Last version of unavailable is 0.0.0.'],
             info=['- 1 packages need to be checked for updates.',
                   '> Fetching latest datas for unavailable...',
-                  '- 0 package updates found.'])
-        self.assertStdOut('')
+                  '- 0 package updates found.']
+        )
+        self.assertStdOut("'versions.cfg' cannot be read.\n")
 
     def test_include_exclude(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i unavailable -e unavailable')
         self.assertEqual(context.exception.code, 0)
         self.assertLogs(
-            debug=["'versions' section not found in versions.cfg."],
+            warning=["'versions.cfg' cannot be read."],
             info=['- 0 packages need to be checked for updates.',
-                  '- 0 package updates found.'])
-        self.assertStdOut('')
+                  '- 0 package updates found.']
+        )
+        self.assertStdOut("'versions.cfg' cannot be read.\n")
 
     def test_write_include_in_blank(self):
         config_file = NamedTemporaryFile()
@@ -995,9 +993,11 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\negg = 0.3\n')
+            '[versions]\negg = 0.3\n'
+        )
         self.assertStdOut(
-            '[versions]\negg = 0.3\n')
+            '[versions]\negg = 0.3        #  0.0.0\n'
+        )
 
     def test_write_include_in_blank_with_indentation(self):
         config_file = NamedTemporaryFile()
@@ -1008,9 +1008,11 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
-            '[versions]\negg     = 0.3\n')
+            '[versions]\negg     = 0.3\n'
+        )
         self.assertStdOut(
-            '[versions]\negg     = 0.3\n')
+            '[versions]\negg     = 0.3        #  0.0.0\n'
+        )
 
     def test_write_in_existing_file_with_exclude(self):
         config_file = NamedTemporaryFile()
@@ -1032,7 +1034,7 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
                   '- 1 package updates found.',
                   '- %s updated.' % config_file.name],
             warning=['[versions]',
-                     'egg = 0.3'])
+                     'egg = 0.3          #  0.1'])
         config_file.seek(0)
         self.assertEquals(
             config_file.read().decode('utf-8'),
@@ -1043,23 +1045,28 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             'egg         = 0.3\n')
         self.assertStdOut(
             '[versions]\n'
-            'egg = 0.3\n')
+            'egg = 0.3          #  0.1\n'
+        )
 
     def test_output_default(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i egg')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
-            '[versions]\n'
-            'egg = 0.3\n')
+            "'versions.cfg' cannot be read.\n"
+            "[versions]\n"
+            "egg = 0.3        #  0.0.0\n"
+        )
 
     def test_output_with_plus_and_minus(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i egg -vvv -qqq')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
-            '[versions]\n'
-            'egg = 0.3\n')
+            "'versions.cfg' cannot be read.\n"
+            "[versions]\n"
+            "egg = 0.3        #  0.0.0\n"
+        )
 
     def test_output_none(self):
         with self.assertRaises(SystemExit) as context:
@@ -1076,18 +1083,20 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             check_buildout_updates.cmdline('-i egg -v')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
-            '- 1 packages need to be checked for updates.\n'
-            '> Fetching latest datas for egg...\n'
-            '- 1 package updates found.\n'
-            '[versions]\n'
-            'egg = 0.3\n')
+            "'versions.cfg' cannot be read.\n"
+            "- 1 packages need to be checked for updates.\n"
+            "> Fetching latest datas for egg...\n"
+            "- 1 package updates found.\n"
+            "[versions]\n"
+            "egg = 0.3        #  0.0.0\n"
+        )
 
     def test_output_max(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i egg -vvvvvvvvvv')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
-            "'versions' section not found in versions.cfg.\n"
+            "'versions.cfg' cannot be read.\n"
             "- 1 packages need to be checked for updates.\n"
             "> Fetching latest datas for egg...\n"
             "-> Last version of egg is 0.3.\n"
@@ -1095,14 +1104,15 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "last version (0.3) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg = 0.3\n")
+            "egg = 0.3        #  0.0.0\n"
+        )
 
     def test_output_max_specifiers(self):
         with self.assertRaises(SystemExit) as context:
             check_buildout_updates.cmdline('-i egg -s egg:<0.3 -vvv')
         self.assertEqual(context.exception.code, 0)
         self.assertStdOut(
-            "'versions' section not found in versions.cfg.\n"
+            "'versions.cfg' cannot be read.\n"
             "- 1 packages need to be checked for updates.\n"
             "> Fetching latest datas for egg...\n"
             "-> Last version of egg<0.3 is 0.2.\n"
@@ -1110,7 +1120,8 @@ class CheckUpdatesCommandLineTestCase(LogsTestCase,
             "last version (0.2) are different.\n"
             "- 1 package updates found.\n"
             "[versions]\n"
-            "egg = 0.2\n")
+            "egg = 0.2        #  0.0.0\n"
+        )
 
     def test_specifiers_errors(self):
         with self.assertRaises(SystemExit) as context:

@@ -117,11 +117,11 @@ Python compatibility
 Buildout-versions-checker has been originally developed for Python 2.7, but
 has been ported and tested for Python 3.4 and more.
 
+Since version 1.10.0, the project compatibility start from Python 3.7 and more.
+
 Requirements
 ------------
 
-* six >= 1.4.1
-* futures >= 3.0.2
 * packaging >= 16
 
 Extras
