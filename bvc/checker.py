@@ -6,15 +6,9 @@ import os
 import socket
 from collections import OrderedDict
 from concurrent import futures
-
-try:
-    from ConfigParser import NoSectionError
-    from urllib2 import URLError
-    from urllib2 import urlopen
-except ImportError:  # Python 3
-    from configparser import NoSectionError
-    from urllib.error import URLError
-    from urllib.request import urlopen
+from configparser import NoSectionError
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from bvc.configparser import VersionsConfigParser
 from bvc.logger import logger
