@@ -1,6 +1,5 @@
 """Setup script for bvc"""
 import os
-import sys
 
 from setuptools import find_packages
 from setuptools import setup
@@ -14,9 +13,7 @@ __email__ = 'fantomas42@gmail.com'
 __url__ = 'https://github.com/Fantomas42/buildout-versions-checker'
 
 
-install_requires = ['six', 'packaging']
-if sys.version_info.major == 2:
-    install_requires.append('futures')
+install_requires = ['packaging']
 
 setup(
     name='buildout-versions-checker',
@@ -41,10 +38,8 @@ setup(
     classifiers=[
         'Framework :: Buildout',
         'Intended Audience :: Developers',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'License :: OSI Approved :: BSD License',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Libraries :: Python Modules'

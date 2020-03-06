@@ -1,11 +1,7 @@
 """Config parser for Buildout Versions Checker"""
 import re
+from configparser import RawConfigParser
 from itertools import chain
-
-try:
-    from ConfigParser import RawConfigParser
-except ImportError:  # Python 3
-    from configparser import RawConfigParser
 
 from bvc.indentation import perfect_indentation
 

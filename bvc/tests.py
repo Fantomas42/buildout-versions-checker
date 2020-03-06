@@ -4,18 +4,13 @@ import os
 import sys
 from collections import OrderedDict
 from io import BytesIO
+from io import StringIO
 from logging import Handler
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 from unittest import TestLoader
 from unittest import TestSuite
-
-try:
-    from cStringIO import StringIO
-    from urllib2 import URLError
-except ImportError:  # Python 3
-    from io import StringIO
-    from urllib.error import URLError
+from urllib.error import URLError
 
 from bvc import checker
 from bvc.checker import UnusedVersionsChecker
@@ -70,10 +65,7 @@ class URLOpener(object):
         except KeyError:
             raise URLError('404')
 
-        try:
-            return BytesIO(bytes(json_payload, 'utf-8'))
-        except TypeError:  # Python 2
-            return StringIO(json_payload)
+        return BytesIO(bytes(json_payload, 'utf-8'))
 
 
 class StubbedURLOpenTestCase(TestCase):
