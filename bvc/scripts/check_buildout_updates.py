@@ -1,11 +1,10 @@
 """Command line for Buildout Versions Checker"""
-import copy
 import logging
 import sys
 from argparse import Action
 from argparse import ArgumentError
 from argparse import ArgumentParser
-from argparse import _ensure_value
+from argparse import _copy_items
 
 from bvc.checker import VersionsChecker
 from bvc.configparser import VersionsConfigParser
@@ -18,7 +17,8 @@ from six import string_types
 class StoreSpecifiers(Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
-        items = copy.copy(_ensure_value(namespace, self.dest, {}))
+        items = getattr(namespace, self.dest, None)
+        items = _copy_items(items)
 
         try:
             key, value = values.split(':')
